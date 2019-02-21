@@ -1,0 +1,133 @@
+<template>
+  <div class="wenda-user">
+    <div class="wenda-login">
+      <div class="header-login clearfix">
+        <div class="left fl">
+          <img :src="userPhoto">
+          <span class="username">{{userName}}</span>
+        </div>
+        <div class="right fr">
+          <router-link :to="{path:'/personBase/publishedQA',query:{current:3}}">
+            我的问答
+            <i class="iconfont icon-arrow-right"></i>
+          </router-link>
+        </div>
+      </div>
+      <ul class="body">
+        <li class="item" @click="$Tool.goPage({ name:'release',query:{title:'发表问题',sort:3}})">
+          <i class="iconfont icon-tiwen"></i>
+          <span>提问</span>
+        </li>
+        <router-link :to="{path:'/personBase/published', query:{userId, current:0}}" tag="li" class="item">
+          <i class="iconfont icon-morentouxiang"></i>
+          <span>个人中心</span>
+        </router-link>
+      </ul>
+    </div>
+  </div>
+</template>
+
+<script>
+  import userService from '@/service/userService'
+  import weChatService from '@/service/weChatService'
+  export default {
+    data(){
+      return {
+        //当前用户名
+        userName:'',
+        //当前用户头像
+        userPhoto:'',
+      }
+    },
+    activated() {
+      this.$nextTick(()=>{
+        let data = weChatService.getSysUser();
+        this.userName = data.wx_user.nickname;
+        this.userPhoto = data.wx_user.headimgurl;
+
+      })
+    }
+
+  }
+</script>
+
+<style lang="less" scoped>
+  .wenda-login{
+    background-color: #fff;
+    margin-bottom: .1rem;
+    border-bottom: .02rem solid @borderColor;
+    .header-nologin{
+      padding: .47rem 0;
+      text-align: center;
+      border-bottom: .02rem solid @borderColor;
+      span{
+        color: #406599;
+      }
+    }
+    .header-login{
+      padding: .24rem .3rem;
+      background-color: #fff;
+      border-bottom: .02rem solid @borderColor;
+      .left{
+        display: flex;
+        line-height: .72rem;
+        img{
+          display: block;
+          width: .72rem;
+          height: .72rem;
+          margin-right: .2rem;
+          border-radius: 50%;
+          border: .02rem solid #e8e8e8;
+
+        }
+        .username{
+          max-width: 2.8rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+      .right{
+        line-height: .72rem;
+        color: #999;
+        .iconfont{
+          position: relative;
+          top: .02rem;
+          left: -.08rem;
+        }
+      }
+    }
+    .body{
+      display: flex;
+      padding: .2rem 0;
+      .item{
+        flex: 1;
+        text-align: center;
+        padding: .1rem 0;
+        border-right: .02rem solid @borderColor;
+        &:last-child{
+          border-right: none;
+        }
+        .iconfont{
+          font-size: .36rem;
+          margin-right: .1rem;
+        }
+        .icon-dati{
+          color: #568fec;
+        }
+        .icon-tiwen{
+          color: #ffc803;
+          font-size: .4rem;
+        }
+        .icon-morentouxiang{
+          color: #ff6b6a;
+        }
+        span{
+          font-size: .3rem;
+          font-weight: 700;
+        }
+      }
+    }
+  }
+
+</style>

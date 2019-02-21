@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <meta name="format-detection" content="telephone=no">
+<!--     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">    
+告诉IE使用最新的引擎渲染网页，chrome=1则可以激活Chrome Fram
+<meta name="renderer" content="webkit">         浏览器内核控制
+<meta name="format-detection" content="telephone=no" />             在iPhone的浏览器中页面将以原始大小显示，不允许缩放
+<meta content="yes" name="apple-mobile-web-app-capable">        删除默认的苹果工具栏和菜单栏.需要显示工具栏和菜单栏时，不需要添加，默认值为yes，即显示。
+<meta content="black" name="apple-mobile-web-app-status-bar-style"> 默认值为default（白色），可以定为black（黑色）和black-translucent（灰色半透明）
+<meta content="email=no" name="format-detection">       告诉设备不识别邮箱，点击之后不自动发送
+-->
+    <!-- <link rel="shortcut icon" href="./static/favicon.ico" type="image/x-icon">
+    <title>直击真相</title> -->
+  </head>
+  <body>
+    <script type="text/javascript">
+      ;(function(){
+        var temp = navigator.userAgent,
+            ad = temp.indexOf('Android');
+          if (ad > -1){
+            // Android 8
+            var androidVersion = temp.substring(ad, temp.indexOf('.', ad)); 
+            // 8
+            if (androidVersion.match(/\d/)[0] < 4) {
+              alert("很抱歉，系统检测到您的手机版本太低，可能无法正常运行该应用，请知悉！")
+            }
+          }
+      }());
+    </script>
+    <div id="app"></div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.2/dist/vue.min.js""></script>
+    <script src="https://unpkg.com/vue-router@3.0.2/dist/vue-router.js"></script>
+    <script src="https://unpkg.com/vuex@3.1.0/dist/vuex.js"></script>
+    <!-- built files will be auto injected -->
+  </body>
+</html>
