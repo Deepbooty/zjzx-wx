@@ -7,29 +7,29 @@
           <span class="username">{{userName}}</span>
         </div>
         <div class="right fr">
-          <router-link :to="{path:'/personBase/publishedQA',query:{current:3}}">
+          <router-link :to="{path:'/personBase/publishedQA',query:{current:2}}">
             我的问答
             <i class="iconfont icon-arrow-right"></i>
           </router-link>
         </div>
       </div>
       <ul class="body">
-        <li class="item" @click="$Tool.goPage({ name:'release',query:{title:'发表问题',sort:3}})">
+        <li class="item" @click="handleDownLoad">
           <i class="iconfont icon-tiwen"></i>
           <span>提问</span>
         </li>
-        <router-link :to="{path:'/personBase/published', query:{userId, current:0}}" tag="li" class="item">
+        <li class="item" @click="$Tool.goPage({ name:'publishedArticle',query:{userId,current:0} })">
           <i class="iconfont icon-morentouxiang"></i>
           <span>个人中心</span>
-        </router-link>
+        </li>
       </ul>
     </div>
   </div>
 </template>
 
 <script>
-  import userService from '@/service/userService'
   import weChatService from '@/service/weChatService'
+  const downloadUrl = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
   export default {
     data(){
       return {
@@ -38,6 +38,12 @@
         //当前用户头像
         userPhoto:'',
       }
+    },
+    methods:{
+      // 跳转下载页面
+      handleDownLoad(){
+        window.location.href = downloadUrl;
+      },
     },
     activated() {
       this.$nextTick(()=>{

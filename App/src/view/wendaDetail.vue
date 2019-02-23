@@ -9,7 +9,6 @@
     <!--回答内容-->
     <div class="answer-detail" @scroll="loadScroll">
       <div class="answer-wrap">
-        <!-- 问题标题-&#45;&#45;回答数-->
         <div class="answer-header">
           <h1 class="question-title">{{wenda.title}}</h1>
           <div class="answer-count">
@@ -18,13 +17,11 @@
         </div>
         <!--回答人的信息-->
         <div class="answer-info clearfix">
-          <router-link class="answer-user fl" :to="{name:'published',query:{userId:answer.author}}" tag="div">
+          <div class="answer-user fl">
             <img :src="$Tool.headerImgFilter(answerUser.imageurl)">
             <span>{{ answerUser.username}}</span>
-          </router-link>
-          <div class="answer-focus fr" v-if="userId != answer.author" @click="handleAnswerFocus(answer.author, 1)">
-            {{answerFocusState ? '已关注' : '关注'}}
           </div>
+          <div class="answer-focus fr" @click="handleDownLoad">关注</div>
         </div>
         <!--问答内容-->
         <div class="answer-content" v-if="!proFail1">
@@ -35,7 +32,7 @@
 
           <div class="content-time clearfix">
             <span class=" fl">创建时间 {{publishtime}}</span>
-            <div class="jubao fr" @click="handleReport(1)">
+            <div class="jubao fr" @click="handleReport">
               <i class="iconfont icon-warning-circle"></i>
               举报
             </div>
@@ -44,11 +41,6 @@
         </div>
         <!--问答未获取到内容-->
         <prompt-blank v-if="proFail1" :mes="failMes1"></prompt-blank>
-        <ul class="article-menu" v-if="detailType">
-          <li :class="{current:current == 1}" @click="handleSwitch(1)">评论</li>
-          <li :class="{current:current == 2}" @click="handleSwitch(2)">转发</li>
-          <li :class="{current:current == 3}" @click="handleSwitch(3)">点赞</li>
-        </ul>
         <!--问答评论-->
         <div class="answer-comment" v-if="ifSwitchB">
           <div class="header clearfix">
@@ -63,25 +55,22 @@
               <div class="comment-wrap fl">
                 <div class="comment-header clearfix">
                   <span class="username fl">{{item.username}}</span>
-                  <div class="comment-zan fr" :class="{'likeActive': item.ifLike}" @click="handleFabulous(2, item.id, index)">
+                  <div class="comment-zan fr" :class="{'likeActive': item.ifLike}" @click="handleDownLoad">
                     <like :likeStatus="index == curLike ? ifLike: 0"></like>
                     <span class="zan-count">{{item.likeNum}}</span>
                   </div>
                 </div>
                 <div class="comment-body">
                   <p class="comment-content">{{item.content}}</p>
-                  <!--<div class="comment-open">展开全文</div>-->
                 </div>
                 <div class="comment-footer clearfix">
                   <div class="footer-left fl">
                     <span class="comment-time">{{$Tool.publishTimeFormat(item.commenttime)}}</span>
                     <span class="comment-point">•</span>
-                    <span class="comment-reply" @click="handleFirstReply(item,index)">
-                      <!--v-if="!isBlacklist(item.douserid)"-->
+                    <span class="comment-reply" @click="handleDownLoad">
                       <var>{{item.replyCount}}</var>回复
                     </span>
                   </div>
-                  <span class="footer-right fr" v-if="item.douserid == userId" v-show="deleteShow" @click="handleDeleteComment(item.id,index,1)">删除</span>
                 </div>
               </div>
             </div>
@@ -94,7 +83,7 @@
     </div>
     <!--伪评论框-->
     <div class="answer-tabBar clearfix">
-      <div class="answer-input fl" @click="handleOpenInput">
+      <div class="answer-input fl" @click="handleDownLoad">
         <i class="iconfont icon-comment"></i>
         <span>写评论...</span>
       </div>
@@ -103,129 +92,21 @@
           <i class="iconfont icon-xiaoxi1"></i>
           <span class="answer-badge" v-show="badgeShow">{{answerCommentNum}}</span>
         </div>
-        <div class="item-icon" @click="handleAnswerCollect(id)">
-          <i class="iconfont" :class="collectIcon ? 'icon-collected' : 'icon-not-collection'"></i>
+        <div class="item-icon" @click="handleDownLoad">
+          <i class="iconfont icon-not-collection"></i>
         </div>
-        <div class="item-icon" @click="handleFabulous(1)">
-          <i class="iconfont" :class="zanIcon ? 'icon-yizan' : 'icon-weizan'"></i>
+        <div class="item-icon" @click="handleDownLoad">
+          <i class="iconfont icon-weizan"></i>
         </div>
-        <div class="item-icon" @click="handleAnswerShare">
+        <div class="item-icon" @click="handleAnswerShare" style="display: none;">
           <i class="iconfont icon-share"></i>
         </div>
       </div>
     </div>
     <!--创建遮罩层-->
     <div class="pop-mask" v-show="popMask" @click="handleCancelInput"></div>
-    <!--评论弹出框-->
-    <div v-transfer-dom class="answer-transfer">
-      <popup v-model="answerPopObj.show" style="z-index: 588;">
-        <div class="popup-wrap">
-          <div class="popup-area">
-            <textarea
-              :placeholder="answerPopObj.placeholder"
-              v-model.trim="answerPopObj.desc"
-              @input="handleDescInput"
-              ref="answerPopFocus" maxlength="300"></textarea>
-          </div>
-          <div class="popup-btn clearfix">
-            <button type="button" class="popup-cancel fl" @click="handleCancelInput">取消</button>
-            <button type="button" class="popup-send fr" :class="{active:answerPopObj.active}" @click="handleSendComment">发布</button>
-          </div>
-        </div>
-      </popup>
-    </div>
     <!--分享弹出框-->
     <share :content="shareDesc" v-model="shareShow"></share>
-    <!--回复框-->
-    <div v-transfer-dom>
-      <popup v-model="replyShow" position="bottom" height="100%">
-        <div class="reply-wrap" @scroll="loadScroll">
-          <div class="reply-header">
-            <i class="iconfont icon-remove" @click="handleCloseRelpy"></i>
-            <span v-show="noReply">暂无回复</span>
-            <span v-show="hasReply">{{replyobj.replyCount}}条回复</span>
-          </div>
-          <div class="reply-body">
-            <div class="reply-container reply-first clearfix">
-              <div class="reply-img fl">
-                <img :src="$Tool.headerImgFilter(replyobj.imageurl)">
-              </div>
-              <div class="reply-content fr">
-                <div class="header clearfix">
-                  <div class="header-desc fl">
-                    <h4>{{replyobj.username}}</h4>
-                    <!-- <span>旅游媒体人</span> -->
-                  </div>
-                  <span class="header-focus fr" v-if="userId != replyUserId"   @click="handleAnswerFocus(replyUserId,2,)">{{replyUserFocusState?'已关注':'关注'}}</span>
-                </div>
-                <div class="reply-desc">
-                  <p>{{replyobj.content}}</p>
-                </div>
-                <div class="reply-time-report clearfix">
-									<span class="reply-time fl">
-										{{$Tool.publishTimeFormat(replyobj.commenttime)}}
-									</span>
-                  <span class="reply-report fr" @click="handleReport(2)">举报</span>
-                </div>
-                <div class="reply-footer clearfix">
-                  <div class="reply-footer-wrap fl clearfix" v-show="noZan">
-                    <ul class="reply-list clearfix fl">
-                      <li class="reply-item">
-                        <img :src="$Tool.headerImgFilter(replyobj.imageurl)" alt="">
-                      </li>
-                    </ul>
-                    <div class="reply-footer-desc fl">
-                      <span class="num">{{replyobj.likeNum}}</span>人赞过
-                      <i class="iconfont icon-arrow-right"></i>
-                    </div>
-                  </div>
-                  <div class="reply-list fl" v-show="hasZan">
-                    暂无人赞过
-                  </div>
-                  <div class="reply-fabulous fr"  @click="handleFabulous(2,replyobj.id,commentIndex)" :class="{'likeActive':commentIndex >=0 && commentList[commentIndex].ifLike}">
-                    {{replyobj.likeNum}}
-                    <like :likeStatus="commentIndex >= 0 && commentList[commentIndex].ifLike"></like>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-            <div class="isDiscuss" v-show="noComment">抢鲜评论</div>
-            <!-- 评论的内容 -->
-            <div class="reply-container" v-show="hasComment">
-              <div class="reply-discuss">全部评论</div>
-              <div class="reply-box clearfix" v-for="(item,index) in replyList">
-                <div class="reply-img fl">
-                  <img :src="$Tool.headerImgFilter(item.imageurl)">
-                </div>
-                <div class="reply-content fr">
-                  <div class="header clearfix">
-                    <div class="header-desc fl">
-                      <h4>{{item.username}}</h4>
-                    </div>
-                  </div>
-                  <div class="reply-desc">
-                    <p>{{item.content}}</p>
-                  </div>
-                  <div class="reply-time-delete clearfix">
-                    <div class="reply-times fl clearfix">
-                      <span class="reply-time fl">{{$Tool.publishTimeFormat(item.commenttime)}}</span>
-                      <span class="fl reply-point">•</span>
-                      <div class="reply-huifu fl"  @click="handleAllReply(item.username)">
-                        <!--<var>{{item.replyCount}}</var>-->
-                        <span class="reply-replys">回复</span>
-                      </div>
-                    </div>
-                    <span class="reply-delete fr" v-if="item.douserid == userId" @click="handleDeleteComment(item.id,index,2)">删除</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </popup>
-    </div>
     <!--举报框-->
     <div v-transfer-dom style="z-index: 988;">
       <popup v-model="reportShow" style="z-index: 999;">
@@ -237,7 +118,7 @@
             <radio :selected-label-style="{color: '#FF9900'}" fill-mode :options="reportList" v-model="reportreasion">
             </radio>
           </group>
-          <div class="report-footer" @click="handleSendReport">
+          <div class="report-footer" @click="handleDownLoad">
             确定
           </div>
         </div>
@@ -261,6 +142,7 @@
   import reportService from '@/service/reportService'
   import listUtil from '@/service/util/listUtil'
   import transmitService from '@/service/transmitService'
+  const downloadUrl = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
   export default {
     name: "wendaDetail",
     components:{
@@ -270,7 +152,6 @@
     data(){
       return{
         id:0, //回答id
-        detailType: 0,//视图类型
         userId:localStorage.id,    //当前登录用户
         loadLock: false,  //加载锁
         fileRoot:config.fileRoot + '/',   //服务路径
@@ -283,7 +164,6 @@
         },
         popMask: false, //创建的遮罩层是否显示
         answerCount:0,    //回答数
-        answerFocusState: false,  //回答人关注状态
         commentFocusState: false,    //评论人关注状态
         answerFile:[],  //回答内容中图片数组
         items:[],
@@ -291,18 +171,10 @@
         answerCommentNum: 0,  //回答评论总数
         ifComment:false,    //是否有评论
         answerZanNum: 0,    //回答点赞总数
-        deleteShow:false,
         /*回答的点赞状态*/
         answerZanBool:{
           notZan:false,
           hasZan:false,
-        },
-        // 评论框对象
-        answerPopObj:{
-          show:false,
-          desc:'',
-          placeholder:'请文明发言，遵守评论规则...',
-          active:false
         },
         replyShow: false, //回复框是否显示
         /*类型：评论(1) | 回复(1)*/
@@ -322,8 +194,6 @@
         replyCommentId:Number,    //回复评论的Id
         replyUserId:Number,     //回复评论人的id
         likeStatus: false,    //点赞状态
-        zanIcon: false,   //伪评论框回答点赞状态
-        collectIcon:false,   //监听收藏图标变化
         curLike:Number,   //点赞数字变化
         badgeShow: false, //伪评论框消息是否显示badge
         /*回答分享对象*/
@@ -354,7 +224,6 @@
         noComment:  false,  //抢鲜评论
         hasComment: false,  //有评论
         ifSwitchB:true, //转发、点赞，评论切换
-        current:1,  //当前
         listMember: [], //转发点赞列表
         proMes:"",    	//转发，点赞提示
       }
@@ -362,16 +231,7 @@
     activated(){
       this.wenda = JSON.parse(this.$route.query.wenda);
       this.answer = JSON.parse(this.$route.query.item);
-      this.detailType = this.$route.query.detailType || 0;
       this.id = this.answer.id;
-      if(!localStorage.id || !localStorage.token){
-        this.answerFocusState=false;
-        this.collectIcon = false;
-        this.zanIcon = false;
-        this.deleteShow = false;
-      }else{
-        this.deleteShow = true;
-      }
 
     },
     mounted() {
@@ -388,14 +248,6 @@
           this.init();
           this.ifLoad = false;
         },delay)
-      },
-      'answerPopObj.show':{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
       },
       shareShow:{
         handler(newVal, oldVal) {
@@ -441,13 +293,6 @@
     methods:{
       // 页面初始渲染
       init(){
-        if (!this.id) {
-          this.$vux.alert.show({
-            content: '获取出错，请返回！',
-          });
-          this.$Tool.goBack();
-          return;
-        }
         this.ifLoad = true;
         // 获取问题回答数量
         interService.getAnswerCount(this.wenda.id, (data) =>{
@@ -462,18 +307,6 @@
           this.answerUser = answerInfo.result.user;
         }
 
-        // 获取关注的状态
-        if(localStorage.getItem('token')) {
-          followService.testFollow(this.answer.author, (data)=>{
-            if(data && data.status == "success") {
-              if(data.result == 1) {
-                this.answerFocusState =true;
-              }else{
-                this.answerFocusState = false;
-              }
-            }
-          })
-        }
         // 获取回答内容中图片
         let answerSrcData = articleFileService.getFileByArticle(this.answer.id);
         if(answerSrcData && answerSrcData.status == "success") {
@@ -508,26 +341,7 @@
           }
         });
 
-        // 获取回答的收藏状态
-        articleCollectService.testCollect(this.answer.id, (data)=>{
-          if(data && data.status == "success") {
-            if(data.result == 1) {
-              this.collectIcon = true;
-            }else{
-              this.collectIcon = false;
-            }
-          }
-        });
-        // 获取回答点赞状态
-        praiseService.testPraise(this.answer.id, 1, (data)=>{
-          if(data && data.status == "success") {
-            if (data.result == 1){
-              this.zanIcon = true;
-            }else{
-              this.zanIcon = false;
-            }
-          }
-        });
+
         // 获取回答点赞总数
         praiseService.getPraiseCount(this.answer.id,1,(data)=>{
           if(data && data.status == "success") {
@@ -545,9 +359,12 @@
         this.loadComment();
         this.ifLoad = false;
       },
+      // 跳转下载页面
+      handleDownLoad(){
+        window.location.href = downloadUrl;
+      },
       onBrowserBack(){
-        if(this.answerPopObj.show || this.shareShow || this.replyShow || this.popMask || this.reportShow){
-          this.answerPopObj.show = false;
+        if(this.shareShow || this.replyShow || this.popMask || this.reportShow){
           this.shareShow = false;
           this.replyShow = false;
           this.popMask = false;
@@ -569,7 +386,6 @@
                     this.$vux.toast.show({
                       text:'关注成功'
                     });
-                    this.answerFocusState = true;
                     // 向回答人发送消息
                     messageService.sendMessage(userid, "focus", this.answer.id, 1);
                   }
@@ -595,14 +411,12 @@
                 this.$vux.toast.show({
                   text:'关注成功'
                 });
-                this.answerFocusState = true;
                 // 向回答人发送消息
                 messageService.sendMessage(userid, "focus", this.answer.id, 1);
               }else{
                 this.$vux.toast.show({
                   text:'取消关注'
                 });
-                this.answerFocusState = false;
               }
             }else{
               if(data.result == 1) {
@@ -628,255 +442,16 @@
         })
       },
 
-      /*type: 1-回答点赞 || 2-评论点赞*/
-      handleFabulous(type, itemid, index) {
-        if(!localStorage.id) {
-          this.$Tool.loginGoBack({
-            returnpage:"/wendaDetail",
-            query:{item:JSON.stringify(this.answer),wenda:JSON.stringify(this.wenda)},
-            name:"wendaDetail",
-            call:()=>{
-              this.conFabulous(type,itemid,index);
-            }
-          });
-          return;
-        }
-        this.conFabulous(type,itemid,index);
-
-      },
-
-      conFabulous(type,itemid,index){
-        if(type == 1) {
-          let zanData = praiseService.doPraise(this.answer.id,1);
-          if(zanData && zanData.status == "success") {
-            if(zanData.result.code == 1) {
-              this.zanIcon = true;
-              this.answerZanNum ++;
-              if(this.answerZanNum > 0) {
-                this.answerZanBool.hasZan = true;
-                this.answerZanBool.notZan = false;
-              }
-
-              // 给发布人发送消息
-              messageService.sendMessage(this.answer.author, "like", this.answer.id, 1);
-            }else{
-              this.zanIcon = false;
-              this.answerZanNum --;
-              if(this.answerZanNum <= 0) {
-                this.answerZanBool.hasZan = false;
-                this.answerZanBool.notZan = true;
-              }
-
-
-            }
-          }
-        }else{
-          let zanData = praiseService.doPraise(itemid,2);
-          if(zanData && zanData.status == "success") {
-            if(zanData.result.code == 1) {
-              this.curLike = index;
-              this.ifLike = true;
-              this.commentList[index].likeNum ++;
-              this.commentList[index].ifLike = true;
-              // 给评论人发送消息
-              messageService.sendMessage(this.replyUserId, "like", this.replyCommentId, 2);
-            }else{
-              this.curLike = index;
-              this.ifLike = false;
-              this.commentList[index].likeNum --;
-              this.commentList[index].ifLike = false;
-            }
-            if(zanData.result.count <= 0) {
-              this.noZan = false;
-              this.hasZan = true;
-            }else{
-              this.hasZan = false;
-              this.noZan = true;
-            }
-          }
-        }
-      },
-      // 收藏回答---取消收藏回答
-      handleAnswerCollect(answerid){
-        if (!localStorage.id ) {
-          this.$Tool.loginPrompt();
-          return;
-        }
-        let answerCollectData = articleCollectService.articleCollect(answerid);
-        if(answerCollectData && answerCollectData.status == "success") {
-          if(answerCollectData.result == 1) {
-            this.collectIcon = true;
-            this.$vux.toast.show({
-              text:'收藏成功',
-              type:'success'
-            });
-            //给发布人发送消息
-            messageService.sendMessage(this.answer.author,"collect",this.answer.id,1);
-            setTimeout(()=>{
-              this.$vux.alert.hide();
-            },1000);
-          }else{
-            this.collectIcon = false;
-            this.$vux.toast.text('取消收藏', 'middle');
-            setTimeout(()=>{
-              this.$vux.alert.hide();
-            },1000);
-          }
-        }
-      },
-
-      // 个人中心显示的switch
-      handleSwitch(v){
-        if(v == 1) {
-          this.ifSwitchB = true;
-          this.current = 1;
-          return;
-        }
-        else if(v == 2) {
-          this.ifSwitchB = false;
-          this.current = 2;
-          let res = transmitService.getTransmitList(this.answer.id,1,10);
-          if (res && res.status == "success") {
-            this.listMember = res.recordPage.list;
-          }
-          if(this.listMember.length == 0){
-            this.proMes = "还没有人转发哦"
-          }
-          return;
-        }
-        else if(v == 3) {
-          this.ifSwitchB = false;
-          this.current = 3;
-          let res = praiseService.getPraiseList(this.answer.id,1,1,10);
-          if (res && res.status == "success") {
-            this.listMember = res.recordPage.list;
-          }
-          if(this.listMember.length == 0){
-            this.proMes = "还没有人点赞哦"
-          }
-          return;
-        }
-      },
-
-      // 打开评论框
-      handleOpenInput(){
-        if(!localStorage.id) {
-          this.$Tool.loginGoBack({
-            returnpage:"/wendaDetail",
-            query:{item:JSON.stringify(this.answer),wenda:JSON.stringify(this.wenda)},
-            name:"wendaDetail",
-            call:()=>{
-            }
-          });
-          return;
-        }
-        this.inputShow();
-        if(this.replyShow){
-          this.popMask = true;
-        }
-        this.answerPopObj.placeholder = "请文明发言，遵守评论规则...";
-      },
 
       // 取消评论框
       handleCancelInput(){
-        this.answerPopObj.show = false;
         this.popMask = false;
         this.shareShow = false;
         this.reportShow = false;
       },
 
-      // 评论框输入事件
-      handleDescInput(){
-        if(this.answerPopObj.desc) {
-          this.answerPopObj.active = true;
-        }else{
-          this.answerPopObj.active = false;
-        }
-      },
 
-      // 发布评论
-      handleSendComment(){
-        this.badgeShow = true;
-        if(!this.answerPopObj.desc) {
-          this.answerPopObj.show = false;
-          this.popMask = false;
-          return;
-        }
-        let currentUserid = localStorage.id;  //当前用户id
-        if(this.answerPopObj.desc && this.$Tool.checkInput(this.answerPopObj.desc)) {
-          if(this.commentType == 1) {
-            //发送评论
-            let commentData = articleCommentService.articleComment(this.answer.id,this.answerPopObj.desc,currentUserid,this.answer.author,1);
 
-            if(commentData && commentData.status == "success") {
-              this.loadLock = false;
-              this.commentPage = 1;
-              this.loadComment();
-              this.answerPopObj.show = false;
-              this.answerPopObj.desc = "";
-              this.answerPopObj.active = false;
-              this.answerCommentNum ++;
-              if(this.answerCommentNum >= 0){
-                this.ifComment = true;
-              }
-              setTimeout(()=>{
-                this.$vux.toast.show({
-                  type:'success',
-                  text: '发布成功'
-                });
-              },500);
-              // 给发布人发送消息
-              messageService.sendMessage(this.answer.author,"reply", this.answer.id, 1);
-              let dis = $('.answer-detail').scrollTop() + $('.content-time').offset().top - 100;
-              $('.answer-detail').animate({scrollTop:dis},100);
-
-            }else{
-              this.$vux.alert.show({
-                content:'评论失败，请重试！'
-              });
-              setTimeout(()=>{
-                this.$vux.alert.hide();
-              },1000);
-            }
-          }else{
-            let comment = this.commentConAdd?(this.answerPopObj.desc + this.commentConAdd):this.answerPopObj.desc;
-            // 执行发送评论回复
-            let resACommentReply = articleCommentService.articleComment(this.answer.id,comment,currentUserid,this.replyUserId,2,this.replyCommentId);
-            if(resACommentReply && resACommentReply.status == "success") {
-              setTimeout(()=>{
-                this.$vux.toast.show({
-                  type:'success',
-                  text: '发布成功'
-                });
-              },500);
-              this.answerPopObj.desc = "";
-              this.commentConAdd = "";
-              this.answerPopObj.show = false;
-              this.popMask = false;
-              this.answerPopObj.active = false;
-              this.commentList[this.commentIndex].replyCount ++;
-              // 给评论人发送消息
-              messageService.sendMessage(this.replyUserId,'reply',this.replyCommentId,2);
-              this.loadReply();
-              $(".reply-wrap").animate({scrollTop:0},100);
-            }else{
-              this.$vux.alert.show({
-                content:'评论失败，请重试'
-              });
-              setTimeout(()=>{
-                this.$vux.alert.hide();
-              },1000);
-            }
-          }
-        }else{
-          this.$vux.alert.show({
-            content:'内容不合法，请修改后提交'
-          });
-          setTimeout(()=>{
-            this.$vux.alert.hide();
-          },1000);
-        }
-      },
 
       //删除评论
       handleDeleteComment(itemid, index, type){
@@ -924,139 +499,14 @@
         });
       },
 
-      // 首次回复
-      handleFirstReply(item, commentIndex){
-        this.replyShow = true;
-        this.commentType = 2;
-        this.replyUserId = item.douserid;	//回复评论人id
-        this.replyCommentId = item.id; //回复评论的id
-        this.commentIndex = commentIndex;//指定评论数组中某条评论的索引值
-        //展开评论回复是顶部当前索引使用
-        // 是否关注发布人
-        this.replyobj = item;
-        if(localStorage.getItem('token')){
-          let resTestFolow = followService.testFollow(item.douserid);
-          if(resTestFolow && resTestFolow.status == "success"){
-            if(resTestFolow.result == 1){
-              this.replyUserFocusState = true;
-            }else{
-              this.replyUserFocusState = false;
-            }
-          }
-        }
-        // 获取文章评论回复列表
-        this.loadReply();
-      },
-      // 二级三级回复
-      handleAllReply(userName){
-        this.inputShow();
-        this.popMask = true;
-        this.answerPopObj.placeholder = "回复 "  + userName + ":"
-        this.commentConAdd = " //@" + userName;
-      },
 
-      // 关闭回复框
-      handleCloseRelpy(){
-        this.replyShow = false;
-        this.commentType = 1;
-      },
+
+
 
       // 打开举报框
-      handleReport(type){
-        if(!localStorage.id){
-          this.$Tool.loginGoBack({
-            returnpage:"/wendaDetail?",
-            query:{id:this.id},
-            name:"wendaDetail",
-            call:()=>{}
-          });
-          this.popMask = false;
-        }
+      handleReport(){
         this.reportShow = true;
         this.popMask = true;
-        this.reportType = type;
-      },
-      // 提交举报内容
-      handleSendReport(){
-        if(!this.reportreasion){return;}
-        let reportInfo;
-        if(this.reportType == 1) {
-          if(this.reportreasion != "拉黑该用户并屏蔽其内容") {
-            reportInfo = {
-              type:4,
-              itemid: this.id,
-              reportuserid:this.answer.author,
-              reportreasion:this.reportreasion
-            };
-          }else{
-            // 拉黑回答作者
-            userService.blacklist(this.answer.author,data=>{
-              if(data && data.status == "success") {
-                let temp = [];
-                if (localStorage.blacklist) {
-                  temp = JSON.parse(localStorage.blacklist);
-                  temp.push(this.article.author);
-                }else{
-                  temp = [this.article.author];
-                }
-                this.$store.commit("setBlacklist",temp);
-                this.$vux.alert.show({
-                  content:'已将该用户拉黑并为您屏蔽其相关内容',
-                });
-              }else{
-                this.$vux.alert.show({
-                  content:'操作失败，请稍后再试！',
-                });
-              }
-            });
-          }
-        }else if (this.reportType === 2){
-          if(this.reportreasion != '拉黑该用户并屏蔽其内容'){
-            reportInfo = {
-              type:2,
-              itemid:this.replyobj.id,
-              reportuserid:this.replyobj.douserid,
-              reportreasion:this.reportreasion
-            };
-          }else{
-            // 拉黑评论者
-            userService.blacklist(this.replyobj.douserid,data=>{
-              if (data && data.status === "success") {
-                let temp = [];
-                if (localStorage.blacklist) {
-                  temp = JSON.parse(localStorage.blacklist);
-                  temp.push(this.replyobj.douserid);
-                }else{
-                  temp = [this.replyobj.douserid];
-                }
-                this.$store.commit("setBlacklist",temp);
-                this.$vux.alert.show({
-                  content:'已将该用户拉黑并为您屏蔽其相关内容',
-                })
-                // this.$router.back();
-              }else{
-                this.$vux.alert.show({
-                  content:'操作失败，请稍后再试！',
-                })
-              }
-            })
-          }
-        }
-        if(this.reportreasion != "拉黑该用户并屏蔽其内容") {
-          let res = reportService.doReport(reportInfo);
-          if (res && res.status === "success") {
-            this.$vux.alert.show({
-              content:'感谢您的反馈，我们会着实核查！',
-            })
-          }else{
-            this.$vux.alert.show({
-              content:'操作失败，请稍后再试！',
-            })
-          }
-        }
-        this.reportShow = false;
-        this.popMask = false;
-        this.reportreasion = "";
       },
       //消息图标滚动
       handleToComment(){
@@ -1082,11 +532,6 @@
 
       },
 
-      /*评论框  显示---获取焦点*/
-      inputShow(){
-        this.answerPopObj.show = true;
-        this.$refs.answerPopFocus.focus();
-      },
       //加载评论
       loadComment(){
         // 获取回答一级评论列表

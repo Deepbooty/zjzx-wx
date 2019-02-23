@@ -16,4 +16,4 @@ service.getSysUser = function (call) {
   return wxInfo;
 };
 
-export default service
+export default service;

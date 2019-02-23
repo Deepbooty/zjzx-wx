@@ -164,34 +164,6 @@
                     }
                 });
             },
-            transArgs(link, title) {
-                this.router.push({
-                    path: link,
-                    query: {
-                        title: title,
-                    }
-                });
-            },
-      /*      setDYModel() {
-                if (!localStorage.dayNight || localStorage.dayNight =='day') {
-                    let night = document.getElementById('night');
-                    if (night) {
-                        night.setAttribute('href','./static/night.css');
-                    }else{
-                        let head = document.getElementsByTagName("head")[0];
-                        let link = document.createElement('link');
-                        link.setAttribute('rel','stylesheet');
-                        link.setAttribute('href','./static/night.css');
-                        link.setAttribute('id','night');
-                        head.appendChild(link);
-                    }
-                    localStorage.dayNight = "night";
-                    console.log(localStorage.dayNight)
-                } else {
-                    document.getElementById('night').removeAttribute('href');
-                    localStorage.dayNight = "day";
-                }
-            },*/
             copyCode(e){
                 this.$refs.inviteCode.select();
                 document.execCommand("Copy");

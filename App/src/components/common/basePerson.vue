@@ -23,8 +23,8 @@
             </li>
           </ul>
           <div class="member-msg-btn" v-if="loginUserId == userId">
-            <button class="btn btn-edit"  @click="$Tool.goPage({ name:'editInfo',query:{'title':'账号设置'}})">账号设置</button>
-            <button class="btn btn-apply" @click="$Tool.goPage({ name:'identityIndex',query:{'title':'申请认证'}})">申请认证</button>
+            <button class="btn btn-edit">账号设置</button>
+            <button class="btn btn-apply">申请认证</button>
           </div>
           <div v-else>
             <!-- 访客所见 -->
@@ -85,6 +85,7 @@
   import followService from '@/service/followService'
   import interService from '@/service/interlocutionService'
   import userService from '@/service/userService'
+  import weChatService from '@/service/weChatService'
   export default {
     data(){
       return {
@@ -131,16 +132,12 @@
     methods:{
       init(){
         // 头像预览
-        if(localStorage.id && localStorage.id == this.userId){
-          this.title = localStorage.userName;
-          this.items[0].src = localStorage.userImg;
-          this.items[0].thumbnail = localStorage.userImg;
-        }
-        let userInfoData = userService.getUserById(this.userId);
-        if(userInfoData && userInfoData.status == "success"){
-          this.items[0].src = this.$Tool.headerImgFilter(userInfoData.result.user.imageurl);
-          this.items[0].thumbnail = this.$Tool.headerImgFilter(userInfoData.result.user.imageurl);
-          this.title = userInfoData.result.user.username;
+        let data = weChatService.getSysUser();
+        if(data && data.status == "success"){
+          console.log(data)
+          this.items[0].src = data.wx_user.headimgurl;
+          this.items[0].thumbnail = data.wx_user.headimgurl;
+          this.title = data.wx_user.nickname;
         }
         //获取文章数量
         articleService.getUserArticleCount(this.userId,(data)=>{

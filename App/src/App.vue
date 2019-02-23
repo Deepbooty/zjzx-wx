@@ -162,62 +162,11 @@ export default {
     }catch(e){
 
     }
-    //获取是否有最新消息
-    /*if (localStorage.id) {
-      messageService.getMessageCount(data=>{
-        if (data && data.status == "success") {
-          this.$store.commit("setNewMes",data.count);
-        }
-      })
-    }*/
   },
   methods:{
     handleReport(){
       if (!this.reportReasion) {return;}
-      let article = this.$store.state.reportArticle;
-      if(this.reportReasion != '拉黑该用户并屏蔽其内容'){
-        let reportInfo = {
-          type:1,
-          itemid:article.id,
-          reportuserid:article.author,
-          reportreasion:this.reportReasion
-        };
-        let res = reportService.doReport(reportInfo);
-        if (res && res.status === "success") {
-          this.$vux.alert.show({
-            content:'感谢您的反馈，我们会着实核查！',
-          })
-        }else{
-          this.$vux.alert.show({
-            content:'操作失败，请稍后再试！',
-          })
-        }
-      }else{
-        // 拉黑文章作者
-        userService.blacklist(article.author,data=>{
-          if (data && data.status === "success") {
-            let temp = [];
-            // debugger;
-            if (localStorage.blacklist) {
-              temp = JSON.parse(localStorage.blacklist);
-              temp.push(article.author);
-            }else{
-              temp = [article.author];
-            }
-            this.$store.commit("setBlacklist",temp);
-            // localStorage.blacklist = JSON.stringify(temp);
-            // debugger;
-            this.$vux.alert.show({
-              content:'已将该用户拉黑并为您屏蔽其相关内容',
-            })
-            // this.$router.back();
-          }else{
-            this.$vux.alert.show({
-              content:'操作失败，请稍后再试！',
-            })
-          }
-        })
-      }
+      window.location.href = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400"
       this.ifReport = false;
       this.reportReasion = "";
     }
