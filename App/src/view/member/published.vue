@@ -38,7 +38,7 @@
     export default {
         data(){
             return {
-                userId:localStorage.id || 0,
+                userId:localStorage.id,
                 arcList:[],
                 proMes:'',
                 proIf:false,
@@ -53,12 +53,8 @@
             }
         },
         mounted(){
-            // articleService.deleteArticleById(7508);
             setTimeout(()=>{
-                // this.deleteIndex = [];
                 this.userId = this.$route.query.userId;
-                // this.page = 1;
-                // this.arcList = [];
                 this.init();
             },delay)
         },
@@ -72,10 +68,6 @@
                 this.lock = true;
                 this.ifLoad = true;
                 var res;
-                /*if (this.$route.name == 'published') {
-                    res = articleService.getArticleByUser(this.userId,this.page,10);
-                    // console.log(res)
-                }else*/ 
                 if (this.$route.name == 'publishedArticle') {
                     res = articleService.getArticleByUser(this.userId,this.page,10,1);
                 }else if (this.$route.name == 'publishedVideo') {

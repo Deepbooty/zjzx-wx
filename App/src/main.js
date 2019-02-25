@@ -102,19 +102,5 @@ new Vue({
     window.delay = 400;// 延迟时间必须大于路由切换动画时间
     // this.initSystem();
   },
-/*  methods: {
-    //判断系统
-    initSystem(){
-        let System = {
-          isWechat:navigator.userAgent.indexOf('MicroMessenger') > -1,
-          isIOS:!!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/),
-          isAndroid:navigator.userAgent.indexOf('Android') > -1,
-          isNative:location.protocol.toLowerCase().indexOf('file') > -1,
-          isIP:!!location.href.match('192'),
-          iPhoneX:/iphone/gi.test(navigator.userAgent) && (screen.height === 812 && screen.width === 375)
-        };
-        this.$store.commit('setStateData',{name:'System',value:System})
-      },
-  },*/
   render: h => h(App),
 }).$mount('#app');

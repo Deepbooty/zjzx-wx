@@ -22,12 +22,12 @@
               粉丝
             </li>
           </ul>
-          <div class="member-msg-btn" v-if="loginUserId == userId">
-            <button class="btn btn-edit">账号设置</button>
-            <button class="btn btn-apply">申请认证</button>
+          <div class="member-msg-btn">
+            <button class="btn btn-edit" @click="handleDownLoad">账号设置</button>
+            <button class="btn btn-apply" @click="handleDownLoad">申请认证</button>
           </div>
-          <div v-else>
-            <!-- 访客所见 -->
+         <!-- <div v-else>
+            &lt;!&ndash; 访客所见 &ndash;&gt;
             <div class="visitor-black" v-if="blackState" @click="handleCloseBlack">解除拉黑</div>
             <div
               v-else
@@ -36,17 +36,11 @@
               @click="handleFocus(userId)">
               {{focusState ? "已关注" : "关注"}}
             </div>
-          </div>
+          </div>-->
         </div>
       </div>
     </div>
     <div class="member-tab">
-      <ul class="member-switch">
-        <!-- <router-link class="member-switch-item active" v-for="(item, index) in switchListPublic" tag="li" :to="{path:item.path,}" :key="index + 'a'" >{{item.desc}}
-                </router-link>
-                <router-link class="member-switch-item active" v-for="(item, index) in switchListPrivate" tag="li" :to="{path:item.path,}" :key="index" >{{item.desc}}
-                </router-link> -->
-      </ul>
       <tab :line-width="2" v-model="current" v-show="loginUserId == userId" key='1'>
         <tab-item v-for="(item, index) in switchListPublic" :key="item.id">
           <router-link class="block" :to="{path:item.path,query:{userId}}" replace>
@@ -65,13 +59,7 @@
             {{item.desc}}
           </router-link>
         </tab-item>
-        <!-- <tab-item v-if="loginUserId == userId" v-for="(item, index) in switchListPrivate" :key="item.id">
-                <router-link :to="{path:item.path,query:{userId:item.userId}}" replace>
-                    {{item.desc}}
-              </router-link>
-            </tab-item> -->
       </tab>
-
     </div>
     <keep-alive>
       <router-view class="router-view" :key="$route.name"></router-view>
@@ -86,6 +74,7 @@
   import interService from '@/service/interlocutionService'
   import userService from '@/service/userService'
   import weChatService from '@/service/weChatService'
+  const downloadUrl = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
   export default {
     data(){
       return {
@@ -132,13 +121,10 @@
     methods:{
       init(){
         // 头像预览
-        let data = weChatService.getSysUser();
-        if(data && data.status == "success"){
-          console.log(data)
-          this.items[0].src = data.wx_user.headimgurl;
-          this.items[0].thumbnail = data.wx_user.headimgurl;
-          this.title = data.wx_user.nickname;
-        }
+          this.items[0].src =localStorage.imageurl;
+          this.items[0].thumbnail = localStorage.imageurl;
+          this.title = localStorage.username;
+
         //获取文章数量
         articleService.getUserArticleCount(this.userId,(data)=>{
           if (data && data.status == "success" ) {
@@ -209,6 +195,10 @@
             },500);
           }
         }
+      },
+      // 跳转下载页面
+      handleDownLoad(){
+        window.location.href = downloadUrl;
       },
 
       // 解除拉黑

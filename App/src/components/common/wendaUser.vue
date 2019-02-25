@@ -28,15 +28,14 @@
 </template>
 
 <script>
-  import weChatService from '@/service/weChatService'
   const downloadUrl = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
   export default {
     data(){
       return {
         //当前用户名
-        userName:'',
+        userName:localStorage.username,
         //当前用户头像
-        userPhoto:'',
+        userPhoto:localStorage.imageurl,
       }
     },
     methods:{
@@ -44,14 +43,6 @@
       handleDownLoad(){
         window.location.href = downloadUrl;
       },
-    },
-    activated() {
-      this.$nextTick(()=>{
-        let data = weChatService.getSysUser();
-        this.userName = data.wx_user.nickname;
-        this.userPhoto = data.wx_user.headimgurl;
-
-      })
     }
 
   }
