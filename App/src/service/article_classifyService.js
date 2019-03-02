@@ -1,6 +1,6 @@
 import config from '@/lib/config/config'
 import commonUtil from '@/service/util/commonUtil'
-const controller =config.successServer+'/article_classify';
+const controller =config.successServer+'/zjzx-article/article_classify';
 const service ={}
 
 service.getArticleClassifyList = function(call){

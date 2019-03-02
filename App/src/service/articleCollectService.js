@@ -1,6 +1,6 @@
 import config from '@/lib/config/config'
 import commonUtil from '@/service/util/commonUtil'
-const controller =config.successServer+'/article_collect';
+const controller =config.successServer+'/zjzx-article/article_collect';
 const service ={}
 
 const token = localStorage.getItem('token');

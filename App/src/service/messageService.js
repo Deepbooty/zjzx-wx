@@ -1,6 +1,6 @@
 import config from '@/lib/config/config'
 import commonUtil from '@/service/util/commonUtil'
-const controller =config.successServer+'/message';
+const controller =config.successServer+'/zjzx-system/message';
 const service ={}
 
 const userid = localStorage.getItem('id');

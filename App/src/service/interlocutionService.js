@@ -1,12 +1,13 @@
 import config from '@/lib/config/config'
 import commonUtil from '@/service/util/commonUtil'
-const controller =config.successServer+'/interlocution';
+const controller =config.successServer+'/zjzx-article/interlocution';
 const service ={}
 
 const userid = localStorage.getItem('id');
 const token = localStorage.getItem('token');
 // 发布问题（讨论）
 service.publishQuestion = function(record,images) {
+	
 	let params = {
 		userid,
 		title:record.title,//:"标题",
@@ -14,6 +15,7 @@ service.publishQuestion = function(record,images) {
 		images,//:"图片地址集合"  格式：url，url2,..........
 		classify:record.classify//:"文章分类"
 	};
+
 	let res = commonUtil.ajaxAsync(controller+'/publishQuestion',params);
 	return res;
 }

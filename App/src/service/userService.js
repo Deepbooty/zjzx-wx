@@ -1,6 +1,6 @@
 import config from '@/lib/config/config'
 import commonUtil from '@/service/util/commonUtil'
-const controller =config.successServer+'/user';
+const controller =config.successServer+'/zjzx-user/user';
 const service ={}
 
 const token = localStorage.getItem('token');

@@ -1,6 +1,6 @@
 import config from '@/lib/config/config'
 import commonUtil from '@/service/util/commonUtil'
-const controller =config.successServer+'/province';
+const controller =config.successServer+'/zjzx-area/province';
 const service ={}
 
 

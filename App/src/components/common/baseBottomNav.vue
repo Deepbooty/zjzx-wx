@@ -56,8 +56,22 @@
         this.downShow = false;
       },
       handleDownLoad(){
-        window.location.href = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400"
+        let ua = navigator.userAgent.toLowerCase();
+        let isAndroid = ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1;
+        let isiOS = !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
+        if(isWeixinBrowser){
+          if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
+            console.log('ios');
+
+          }else if (/(Android)/i.test(navigator.userAgent)){
+            window.location.href = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
+          }
+        }
+        function isWeixinBrowser() {
+          return (/micromessenger/.test(ua)) ? true : false;
+        }
       }
+
     },
     activated(){
       if(!localStorage.id){
