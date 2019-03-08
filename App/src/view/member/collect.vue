@@ -27,7 +27,6 @@
 
 <script>
 import articleSub from '@/components/common/articleSub'
-import readHistoryService from '@/service/readHistoryService'
 import articleCollectService from '@/service/articleCollectService'
 export default {
 	components:{

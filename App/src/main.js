@@ -22,7 +22,7 @@ import Tool from './assets/js/methods'
 Vue.use(Tool);
 
 // 预览大图
-import vuePicturePreview from 'vue-picture-preview'
+import vuePicturePreview from 'babel-loader!vue-picture-preview'
 Vue.use(vuePicturePreview)
 
 import VuePictureSwipe from 'vue-picture-swipe';
@@ -36,12 +36,8 @@ Vue.component('share', () => import('@/components/common/share'))
 import Top from '@/components/common/top'
 Vue.component('Top',Top);
 Vue.component('LoadingMain',() => import('@/components/common/loadingMain'));
-// import LoadingMain from '@/components/common/loadingMain'
-// Vue.component('LoadingMain',LoadingMain);
 //通用空白页提示
 Vue.component('PromptBlank',() => import('@/components/common/promptBlank'));
-// import PromptBlank from '@/components/common/promptBlank'
-// Vue.component('PromptBlank',PromptBlank);
 // 下拉刷新组件
 import downRefresh from '@/components/common/downRefresh'
 Vue.component('downRefresh',downRefresh);
@@ -102,5 +98,19 @@ new Vue({
     window.delay = 400;// 延迟时间必须大于路由切换动画时间
     // this.initSystem();
   },
+/*  methods: {
+    //判断系统
+    initSystem(){
+        let System = {
+          isWechat:navigator.userAgent.indexOf('MicroMessenger') > -1,
+          isIOS:!!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/),
+          isAndroid:navigator.userAgent.indexOf('Android') > -1,
+          isNative:location.protocol.toLowerCase().indexOf('file') > -1,
+          isIP:!!location.href.match('192'),
+          iPhoneX:/iphone/gi.test(navigator.userAgent) && (screen.height === 812 && screen.width === 375)
+        };
+        this.$store.commit('setStateData',{name:'System',value:System})
+      },
+  },*/
   render: h => h(App),
 }).$mount('#app');

@@ -3,8 +3,8 @@
     <keep-alive>
       <router-view></router-view>
     </keep-alive>
-    <div class="footer-wrap">
-      <div class="footer-nav clearfix">
+    <div class="footer-wrapper">
+      <div class="footer-nav">
         <div class="footer-item">
           <router-link to="/home" exact>
             <i class="iconfont icon-gruth footer-icon"></i>
@@ -23,17 +23,23 @@
             <span class="footer-text">今日真相</span>
           </router-link>
         </div>
+        <div class="footer-item">
+          <router-link :to="{path:'/member'}" exact>
+            <i class="iconfont icon-wode footer-icon">
+              <badge :text="newMes" class="bfc-p" v-if="newMes" v-show="badgeShow"></badge>
+            </i>
+            <span class="footer-text">我的</span>
+          </router-link>
+        </div>
       </div>
-      <div class="footer-down clearfix" v-if="downShow">
-        <div class="down-img fl">
+      <div class="footer-download clearfix">
+        <div class="download-logo fl">
           <img src="@/assets/images/bar-logo.png" alt="">
         </div>
-        <div class="down-btn fr" @click="handleDownLoad">
-          立即下载
-        </div>
-        <div class="down-close" @click.stop="handleCloseDown">
-          <i class="iconfont icon-close"></i>
-        </div>
+        <router-link to="/download" class="download-btn fr" tag="div">
+          打开APP
+        </router-link>
+
       </div>
     </div>
   </div>
@@ -42,36 +48,13 @@
   export default{
     data(){
       return{
-        badgeShow:false,
-        downShow:true
+        badgeShow:false
       }
     },
     computed:{
       newMes(){
         return this.$store.state.newMes || this.$store.state.newVersion;
       }
-    },
-    methods:{
-      handleCloseDown(){
-        this.downShow = false;
-      },
-      handleDownLoad(){
-        let ua = navigator.userAgent.toLowerCase();
-        let isAndroid = ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1;
-        let isiOS = !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
-        if(isWeixinBrowser){
-          if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
-            console.log('ios');
-
-          }else if (/(Android)/i.test(navigator.userAgent)){
-            window.location.href = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
-          }
-        }
-        function isWeixinBrowser() {
-          return (/micromessenger/.test(ua)) ? true : false;
-        }
-      }
-
     },
     activated(){
       if(!localStorage.id){
@@ -84,74 +67,74 @@
   }
 </script>
 <style lang="less" scoped>
-  .footer-wrap{
+  .footer-wrapper {
     width: 100%;
     position: fixed;
     bottom: 0;
     left: 0;
-    .footer-nav{
+    .footer-nav {
       width: 100%;
+      /*position: fixed;*/
       padding: .12rem 0;
+      /* left: 0;
+       bottom: 0;*/
       text-align: center;
       overflow: hidden;
       background-color: #fff;
       border-top: .02rem solid @borderColor;
+
       .footer-item {
         float: left;
-        width: 33.33%;
+        width: 25%;
         height: .88rem;
+        font-weight: 500;
         color: #666;
+
         .footer-icon {
           padding-top: .08rem;
           display: block;
           font-size: .4rem;
         }
-        .footer-text{
+
+        .footer-text {
           display: block;
           margin-top: .05rem;
           font-size: .24rem;
 
         }
       }
-      .footer-item a.router-link-active,.current{
-        color: @deepMainColor;
+
+      .footer-item a.router-link-active, .current {
+        color: #f86f00;
       }
     }
-    .footer-down{
-      padding: .1rem .7rem .1rem .4rem;
+    .footer-download{
       width: 100%;
       height: .88rem;
-      background: #434343;
-      .down-img{
-        width: 52%;
+      padding: .1rem .2rem;
+      background: #666;
+      .download-logo{
+        width: 46%;
+        position: relative;
+        top: 0rem;
+        img{
+          display: block;
+          width: 100%;
+          height: 100%;
+        }
       }
-      .down-btn{
+      .download-btn{
         width: 1.8rem;
         height: .6rem;
         line-height: .6rem;
-        margin-top: .07rem;
-        font-size: .24rem;
+        margin-top: .045rem;
+        font-size: .28rem;
         color: #fff;
         text-align: center;
         border-radius: .35rem;
+        letter-spacing: .02rem;
         background: linear-gradient(#f7ba15, #f89a1e);
-      }
-      .down-close{
-        position: absolute;
-        bottom: .36rem;
-        right: .06rem;
-        width: .36rem;
-        height: .36rem;
-        line-height: .36rem;
-        text-align: center;
-        border-radius: 50%;
-        background-color: #7d7d7d;
-        .iconfont{
-          font-size: .2rem;
-          color: #fff;
-        }
       }
     }
   }
-
 </style>

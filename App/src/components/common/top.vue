@@ -3,17 +3,12 @@
 		<div class="top-back">
 			<div class="top-back-icon"  @click="this.$Tool.goBack">
 				<i class="iconfont icon-arrow-left">
-					<!-- <slot name="href"></slot> -->
 				</i>
 			</div>
 			<div class="top-back-title">
 				<slot name="title"></slot>
 			</div>
 			<div class="top-back-nav">
-				<!-- <slot name="nav">
-					<i class="iconfont icon-more">
-					</i>
-				</slot> -->
 			</div>
 		</div>
 	</div>
@@ -42,7 +37,6 @@ export default {
 	position: relative;
 	left: 0;
 	top: 0;
-	// z-index: 9;
 	justify-content: space-between;
 	.top-back-icon{
 		width: .4rem;

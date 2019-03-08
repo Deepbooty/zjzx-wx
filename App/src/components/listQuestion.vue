@@ -20,7 +20,7 @@
         <span class="text">暂无数据...</span>
       </div>
       <load-more
-        v-show="!ifNet && wendaList.length"
+        v-show="wendaList.length"
         :show-loading="ifLoading"
         :tip="tip">
       </load-more>
@@ -152,10 +152,26 @@
               this.page++;
             }else{
               this.ifLoading = false;
-              this.tip = "你已经看到我的底线啦"
+              this.tip = "已加载全部"
             }
           }
-        }finally {
+        } catch(err) {
+            let net = {};
+            try {
+                net = netUtil.getNetInfo();
+            } catch(err) {
+                        
+            } finally {
+                if (net.network === "未连接网络") {
+                    this.$vux.toast.show({
+                        type:"text",
+                        time:800,
+                        text:"网络竟然崩潰了",
+                        width:"50%",
+                    });
+                } 
+            }
+        } finally {
           this.lock = false;
         }
       }

@@ -195,13 +195,14 @@ export default {
         line-height: 1.1rem;
         color: #555;
         .img{
-          width: .8rem;
-          height: .8rem;
+          width: .76rem;
+          height: .76rem;
           margin-right: .2rem;
           margin-top: .15rem;
           img{
             display: block;
             width: 100%;
+            height: 100%;
             border-radius: 50%;
             border: .02rem solid @borderColor;
           }

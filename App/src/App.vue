@@ -4,10 +4,6 @@
       <keep-alive>
         <router-view class="router-view-app"></router-view>
       </keep-alive>
-      <!-- <keep-alive v-if="!$route.meta.keepAlive">
-        <router-view  class="router-view-app"></router-view>
-      </keep-alive>
-      <router-view v-else class="router-view-app"></router-view> -->
     </transition>
     <lg-preview></lg-preview>
     <!-- 举报框 -->
@@ -15,13 +11,13 @@
       <popup v-model="ifReport" style="z-index: 999;">
         <div class="report-wrap">
           <div class="report-header">
-            <h2>举报(举报热线：18756686768)</h2>
+            <h2>举报(举报热线：400-1106768)</h2>
           </div>
           <group>
             <radio :selected-label-style="{color: '#FF9900'}" fill-mode :options="reportList" v-model="reportReasion">
             </radio>
           </group>
-          <div class="report-footer" @click="handleReport">
+          <div class="report-footer" @click="handleDownLoad">
             确定
           </div>
         </div>
@@ -33,15 +29,12 @@
 <script>
 import netUtil from "@/service/util/netUtil"
 import versionService from "@/service/versionService"
-import messageService from '@/service/messageService'
-import userService from '@/service/userService'
-import reportService from '@/service/reportService'
+import weChatService from '@/service/weChatService'
 export default {
   name: 'App',
   data() {
   	return {
   		transitionName: '',
-      // ifLoad:true,
       mainRoute:["member","questionAnswer","video"],
       first:"",
       report:{
@@ -56,29 +49,43 @@ export default {
   	}
   },
   created(){
-    // setTimeout(()=>{
-    //   this.ifLoad = false;
-    // },3000);
-    //html font-size 
     var resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize';
     window.addEventListener(resizeEvt, subRecalc, false);
     document.addEventListener('DOMContentLoaded', subRecalc, false);
     function subRecalc(){
-      var docEl=document.documentElement,
+      var docEl = document.documentElement,
       clientWidth = Math.min( window.innerWidth , docEl.clientWidth );
       docEl.style.fontSize = ( clientWidth / 750 * 100)+"px";
     }
-    //night
-    /*if (localStorage.dayNight && localStorage.dayNight === 'night') {
-        let head = document.getElementsByTagName("head")[0];
-        let link = document.createElement('link');
-        link.setAttribute('rel','stylesheet');
-        link.setAttribute('id','night');
-        link.setAttribute('href','./static/night.css');
-        head.appendChild(link);
-    }*/
   },
   mounted(){
+    this.$nextTick(()=>{
+      let data = weChatService.getSysUser();
+      if(data && data.status == "success"){
+        let wx_user = data.wx_user;
+        console.log(data)
+        let wxObj = {
+          openid: wx_user.openid,
+          nickname: wx_user.nickname,
+          headimgurl:wx_user.headimgurl,
+          country: wx_user.country,
+          province:wx_user.province,
+          city:wx_user.city,
+          sex:wx_user.sex,
+        };
+        let app_user = data.app_user;
+        let appObj = {
+          id: app_user.id,
+          imageurl: app_user.imageurl,
+          integration: app_user.integration,
+          username: app_user.username,
+
+        };
+        Object.assign(localStorage,wxObj);
+        Object.assign(localStorage,appObj);
+        console.log(localStorage)
+      }
+    });
     try{
       let _this = this;
       document.addEventListener('plusready', function() {
@@ -164,12 +171,12 @@ export default {
     }
   },
   methods:{
-    handleReport(){
-      if (!this.reportReasion) {return;}
-      window.location.href = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400"
+    handleDownLoad(){
       this.ifReport = false;
       this.reportReasion = "";
-    }
+
+      this.$router.push({ path:'/download'})
+    },
   },
   watch: {
   	//监听路由
@@ -208,6 +215,7 @@ export default {
     height: 100%;
     overflow: hidden;
   }
+
   .router-view-app {
     position: absolute;
     background: #f4f5f6;
@@ -218,12 +226,7 @@ export default {
     transform: translate(100%, 0);
     z-index: 9;
   }
-/*  .slide-right-enter-active,.slide-left-leave-active{
-  }*/
-  /*.slide-left-leave-active, .slide-right-enter {
-    opacity: 0;
-    transform: translate(-100%, 0);
-  }*/
+
   /*添加vux toast 行高*/
   .weui-toast_text .weui-toast__content{
     line-height: 22px;

@@ -2,7 +2,7 @@
 	<div class="about-wrap">
 		<div class="about-header">
 			<div class="about-logo">
-				<img src="@/assets/images/about.png" alt="">
+				<img src="@/assets/images/logo-icon.png" alt="">
 			</div>
 			<div class="about-img">
 				<img src="@/assets/images/aboutDesc.png" alt="">
@@ -51,18 +51,18 @@
 		height: calc( 100% - .87rem );
 		overflow: hidden;
 		overflow-y: auto;
-		padding: .4rem .2rem;
+		padding: .2rem .2rem;
 		background-color: #fff;
 		.about-header {
 			text-align: center;
 			margin-top: .5rem;
 			.about-logo {
-				width: 1.5rem;
-				height: 1.5rem;
+				width: 1.3rem;
+				height: 1.3rem;
 				margin: 0 auto .3rem auto;
 			}
 			.about-img{
-				width: 65%;
+				width: 60%;
 				height: .6rem;
 				margin: 0 auto;
 				img{
@@ -83,8 +83,6 @@
 				font-size: .3rem;
 				line-height: .5rem;
 				color: #4a4a4a;
-				p{
-				}
 			}
 			.about-list{
 				margin-bottom: .3rem;
@@ -106,7 +104,7 @@
 				text-align: center;
 				button{
 					display: inline-block;
-					padding: .2rem .6rem;
+					padding: .15rem .38rem;
 					margin-right: .4rem;
 					border-radius: .2rem;
 					color: #1674e9;

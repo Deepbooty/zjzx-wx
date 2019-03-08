@@ -3,11 +3,11 @@
     <div class="wenda-login">
       <div class="header-login clearfix">
         <div class="left fl">
-          <img :src="userPhoto">
-          <span class="username">{{userName}}</span>
+          <img :src="fileRoot + userPhoto">
+          <span class="fileRoot + username">{{userName}}</span>
         </div>
         <div class="right fr">
-          <router-link :to="{path:'/personBase/publishedQA',query:{current:2}}">
+          <router-link :to="{path:'/personBase/publishedQA',query:{userId,current:2}}">
             我的问答
             <i class="iconfont icon-arrow-right"></i>
           </router-link>
@@ -28,21 +28,21 @@
 </template>
 
 <script>
-  const downloadUrl = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
+  import config from '@/lib/config/config'
   export default {
     data(){
       return {
-        //当前用户名
-        userName:localStorage.username,
-        //当前用户头像
-        userPhoto:localStorage.imageurl,
+        fileRoot:config.fileRoot+'/',
+        userId: localStorage.id,
+        userName: localStorage.username,
+        userPhoto:localStorage.imageurl
+
       }
     },
     methods:{
-      // 跳转下载页面
       handleDownLoad(){
-        window.location.href = downloadUrl;
-      },
+        this.$router.push({ path:'/download'})
+      }
     }
 
   }
@@ -74,8 +74,6 @@
           height: .72rem;
           margin-right: .2rem;
           border-radius: 50%;
-          border: .02rem solid #e8e8e8;
-
         }
         .username{
           max-width: 2.8rem;

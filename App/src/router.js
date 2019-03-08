@@ -52,6 +52,14 @@ export default new VueRouter({
         },
       ]
     },
+    // 下载APP页面
+    {
+      path: '/download',
+      name: 'download',
+      component: (resolve)=>{
+        require(['@/view/download.vue'],resolve)
+      },
+    },
     //新闻详情页面(浏览者视图)
     {
       path: '/detail',
@@ -106,6 +114,13 @@ export default new VueRouter({
       },
       children:[
         {
+          path:'login',
+          name:'login',
+          component: (resolve)=>{
+            require(['@/view/member/login.vue'],resolve)
+          }
+        },
+        {
           path:'release',
           name:'release',
           component: (resolve)=>{
@@ -120,24 +135,10 @@ export default new VueRouter({
           }
         },
         {
-          path:'feedback',
-          name:'feedback',
-          component: (resolve)=>{
-            require(['@/view/member/feedback.vue'],resolve)
-          }
-        },
-        {
           path:'wallet',
           name:'wallet',
           component: (resolve)=>{
             require(['@/view/member/wallet.vue'],resolve)
-          }
-        },
-        {
-          path:'set',
-          name:'set',
-          component: (resolve)=>{
-            require(['@/view/member/set.vue'],resolve)
           }
         },
         {
@@ -208,13 +209,6 @@ export default new VueRouter({
           name:'city',
           component: (resolve)=>{
             require(['@/view/member/city.vue'],resolve)
-          }      
-        },
-        {
-          path:'invite',
-          name:'invite',
-          component: (resolve)=>{
-            require(['@/view/member/invite.vue'],resolve)
           }      
         },
         {

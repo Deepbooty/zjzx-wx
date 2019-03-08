@@ -1,5 +1,4 @@
 var authUtil = {};
-
 /**
  * 
  * @param {Object} type
@@ -109,21 +108,82 @@ authUtil.loginByQQ = function(call){
 		console.log("授权失败");
 		return;
 	}
+	// console.log(JSON.stringify(auth));
+	// {"id":"qq","description":"QQ","authResult":null,"userInfo":null}
 	auth.login(function(){
 			// console.log("登录认证成功：");
 			// console.log(JSON.stringify(auth.authResult));
 			// {"scope":"snsapi_userinfo","expires_in":7776000,"access_token":"129D8F3FEA728C2607E3D2FB104B0A72","openid":"F6DC81D7DEA4AA7AC94A2C6E57F96C09"}
+			// console.log(JSON.stringify(auth));
+			// {"id":"qq","description":"QQ","authResult":{"ret":0,"openid":"5D116E63082CF81CE9B3EEE4EF7FF65F","access_token":"192F6C8FC0C1AB5488DD1AF53125C43E","pay_token":"CFE99210A6A7442838B3D78F80B4E0FE","expires_in":7776000,"pf":"desktop_m_qq-10000144-android-2002-","pfkey":"7319a53a3c6d98326867dc211c30d1e3","msg":"","login_cost":155,"query_authority_cost":280,"authority_cost":0},"userInfo":{"ret":0,"msg":"","is_lost":0,"nickname":"郁郁谢润级","gender":"男","province":"江苏","city":"无锡","year":"1990","constellation":"","figureurl":"http://qzapp.qlogo.cn/qzapp/1104455702/5D116E63082CF81CE9B3EEE4EF7FF65F/30","figureurl_1":"http://qzapp.qlogo.cn/qzapp/1104455702/5D116E63082CF81CE9B3EEE4EF7FF65F/50","figureurl_2":"http://qzapp.qlogo.cn/qzapp/1104455702/5D116E63082CF81CE9B3EEE4EF7FF65F/100","figureurl_qq_1":"http://thirdqq.qlogo.cn/g?b=oidb&k=vKuleib20drHq1PUJHialwpQ&s=40","figureurl_qq_2":"http://thirdqq.qlogo.cn/g?b=oidb&k=vKuleib20drHq1PUJHialwpQ&s=100","figureurl_qq":"http://thirdqq.qlogo.cn/g?b=oidb&k=vKuleib20drHq1PUJHialwpQ&s=140","figureurl_type":"1","is_yellow_vip":"0","vip":"0","yellow_vip_level":"0","level":"0","is_yellow_year_vip":"0","headimgurl":"http://qzapp.qlogo.cn/qzapp/1104455702/5D116E63082CF81CE9B3EEE4EF7FF65F/30"}}
 			
+			/*
+			此路不可行
+			$.ajax({
+				url:`https://graph.qq.com/oauth2.0/me?access_token=${access_token}&unionid=1`, 
+				type:"GET",
+				dataType:"jsonp", 
+				jsonpCallback:'callback',
+				success:function(data){
+					auth.authResult.unionid = data.unionid
+				},
+				error(err) {
+					console.log('--- 2' + err)
+				}
+			})*/
+
+			try {
+				window.$.ajax({
+					url: 'http://www.zjzx.xyz:9010/zjzx-system/three/getQQUid?access_token=' + auth.authResult.access_token,
+					type: 'post',
+					dataType: 'json',
+					async:false,
+					success:function(data){
+						try {
+							// console.log('---1' + JSON.stringify(data))
+							auth.authResult.unionid = data.unionid
+						} catch(err) {
+							// console.log('---4' + JSON.stringify(err))
+						}
+					}
+				})
+			} catch(err) {
+				// console.log('---3' + JSON.stringify(err))
+			}
+			var authResult = auth.authResult
+			if (authResult.unionid) {
+				// console.log(JSON.stringify(auth))
+				var userInfo = auth.userInfo; 
+				var qq_user = {};
+				qq_user.qq_unionid = authResult.unionid;
+				qq_user.qq_openid = authResult.openid;
+				qq_user.qq_nikname = userInfo.nickname;
+				qq_user.qq_image = userInfo.headimgurl;
+				qq_user.sex = userInfo.gender;
+				resMap.status = "success";
+				result.qq_user = qq_user;
+				if(call){
+					call(resMap);
+				}
+			} else {
+				// plus.nativeUI.alert("获取授权信息失败",null,"登录")
+				resMap.status = "error";
+				if(call){
+					call(resMap);
+				}
+			}
+
 			// console.log("----- 获取用户信息 -----");
-			auth.getUserInfo(function(){
+			/*auth.getUserInfo(function(){
 				// console.log("获取用户信息成功：");
 				// console.log(JSON.stringify(auth.userInfo));
 				// {"figureurl":"http://qzapp.qlogo.cn/qzapp/1104455702/F6DC81D7DEA4AA7AC94A2C6E57F96C09/30","province":"安徽","openid":"F6DC81D7DEA4AA7AC94A2C6E57F96C09","figureurl_qq_1":"http://thirdqq.qlogo.cn/qqapp/1104455702/F6DC81D7DEA4AA7AC94A2C6E57F96C09/40","nickname":"被博士","yellow_vip_level":"0","constellation":"","city":"池州","year":"1968","figureurl_1":"http://qzapp.qlogo.cn/qzapp/1104455702/F6DC81D7DEA4AA7AC94A2C6E57F96C09/50","figureurl_2":"http://qzapp.qlogo.cn/qzapp/1104455702/F6DC81D7DEA4AA7AC94A2C6E57F96C09/100","gender":"男","level":"0","is_yellow_year_vip":"0","headimgurl":"http://qzapp.qlogo.cn/qzapp/1104455702/F6DC81D7DEA4AA7AC94A2C6E57F96C09/30","is_lost":0,"ret":0,"vip":"0","figureurl_qq_2":"http://thirdqq.qlogo.cn/qqapp/1104455702/F6DC81D7DEA4AA7AC94A2C6E57F96C09/100","msg":"","is_yellow_vip":"0"}
 				var nickname=auth.userInfo.nickname||auth.userInfo.name||auth.userInfo.miliaoNick;
-			//	plus.nativeUI.alert("欢迎“"+nickname+"”登录！");
+				//	plus.nativeUI.alert("欢迎“"+nickname+"”登录！");
 				var userInfo = auth.userInfo; 
 				var qq_user = {};
-				// console.log(JSON.stringify(auth));
+				console.log(JSON.stringify(auth));
+				qq_user.qq_unionid = auth.authResult.unionid;
 				qq_user.qq_openid = auth.authResult.openid;
 				qq_user.qq_nikname = userInfo.nickname;
 				qq_user.qq_image = userInfo.headimgurl;
@@ -145,7 +205,7 @@ authUtil.loginByQQ = function(call){
 					call(resMap);
 				}
 				
-			});
+			});*/
 		},function(e){
 			
 			// console.log("登录认证失败：");
@@ -219,5 +279,19 @@ authUtil.loginByXl = function(call){
 	
 }
 
+// 注销授权登录
+authUtil.logoutAll = function () {
+	for (var i in auths) {
+    logout(auths[i]);
+  }
+}
 
+function logout(auth) {
+	auth.logout()
+	/*auth.logout(function () {
+		// console.log("注销\""+auth.description+"\"成功")
+	}, function (e) {
+		plus.nativeUI.alert("注销\""+auth.description+"\"失败："+e.message);
+	})*/
+}
 export default authUtil

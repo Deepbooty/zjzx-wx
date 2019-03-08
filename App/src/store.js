@@ -22,27 +22,11 @@ function State(){
   this.selectedPublishAddress = "";
   this.reportArticle = null;
   this.blacklist = [];
-  // this.openid = null;
-  // this.nickname = null;
-  // this.headimgurl = "";
-  // this.country = null;
-  // this.province = null;
-  // this.city = null;
-  // this.sex = null;
-
-
-
-
 }
 let state = new State();
 localStorage.blacklist && (state.blacklist = JSON.parse(localStorage.blacklist))
 //创建改变状态的方法
 const mutations = {
-
-
-
-
-
   LOGIN(state,data) {
     state.token = data;
     window.localStorage.setItem('token', data);
@@ -55,11 +39,6 @@ const mutations = {
     state.id = data;
     window.localStorage.setItem('id', data);
   },
-  WXID(state,data){
-    state.openid = data;
-    window.localStorage.setItem('wxid', data);
-  },
-
   LOGID(state, data) {
     state.logid=data;
     window.localStorage.setItem('logid', data);
@@ -117,10 +96,6 @@ const actions = {
   userId({commit}, data) {
     commit('ID', data);
   },
-
-  openId({commit},data) {
-    commit("WXID", data);
-  },
   userLogid({commit},data) {
     commit('LOGID', data);
   },
@@ -144,8 +119,11 @@ const actions = {
   },
   setIsScolling({commit},data) {
     commit("setIsScolling",data);
-  }
-};
+  },
+  // setForbidSwiper({commit},data){
+  //   commit("setForbidSwiper",data);
+  // }
+}
 
 export default new Vuex.Store({
 	state,

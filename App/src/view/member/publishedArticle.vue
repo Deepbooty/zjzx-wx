@@ -1,7 +1,16 @@
 
+
+
 <!-- 废弃 -->
 <template>
 	<div @scroll="loadMore">
+		<!-- <div class="editor bfc-o">
+			<i class="iconfont icon-delete fr" v-if="!ifDeleteAll" @click="ifDeleteAll = true;"></i>
+			<div v-else>
+				<span @click="deleteAll()" class="deleteAll">删除全部</span>
+				<span class="fr" @click="ifDeleteAll = false;">完成</span>
+			</div>
+		</div> -->
 		<multIT
             v-for="(item,index) in arcList"
             :article="item"
@@ -36,7 +45,6 @@ export default {
 	activated(){
 		setTimeout(()=>{
 			this.userId = this.$route.query.userId;
-			console.log(this.$route.query)
 			this.page = 1;
 			this.arcList = [];
 			this.init();

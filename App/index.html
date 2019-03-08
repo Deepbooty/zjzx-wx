@@ -18,22 +18,28 @@
   <body>
     <script type="text/javascript">
       ;(function(){
-        var temp = navigator.userAgent,
-            ad = temp.indexOf('Android');
+        var temp = navigator.userAgent
+        var ad = temp.indexOf('Android')
           if (ad > -1){
-            // Android 8
-            var androidVersion = temp.substring(ad, temp.indexOf('.', ad)); 
-            // 8
-            if (androidVersion.match(/\d/)[0] < 4) {
-              alert("很抱歉，系统检测到您的手机版本太低，可能无法正常运行该应用，请知悉！")
+            if (temp.substring(ad + 8, 31) < 4.5) {
+              alert("很抱歉，系统检测到您的手机版本较低，可能无法正常运行该应用，请知悉！")
             }
+            // Android 8
+            // var androidVersion = temp.substring(ad, temp.indexOf('.', ad)); 
+            // 8
+            /*if (androidVersion.match(/\d/)[0] < 5) {
+              alert("很抱歉，系统检测到您的手机版本较低，可能无法正常运行该应用，请知悉！")
+            }*/
           }
       }());
     </script>
     <div id="app"></div>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.2/dist/vue.min.js""></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.2/dist/vue.min.js"></script>
     <script src="https://unpkg.com/vue-router@3.0.2/dist/vue-router.js"></script>
     <script src="https://unpkg.com/vuex@3.1.0/dist/vuex.js"></script>
+    <script src="http://res2.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
+
+
     <!-- built files will be auto injected -->
   </body>
 </html>

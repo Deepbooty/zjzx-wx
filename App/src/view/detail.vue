@@ -20,36 +20,49 @@
       <section class="content-wrap" v-if="!proFail1">
         <h1 class="article-title">{{ article.title }}</h1>
         <div class="publisher bfc-o">
-          <img :src="$Tool.headerImgFilter(artUser.imageurl)" alt="" class="uphoto uphoto-big">
-          <div class="article-time-name bfc-d">
-            <div class="uname">
-              {{ artUser.username}}
+          <router-link :to="{name:'publishedArticle',query:{userId:article.author}}">
+            <img :src="$Tool.headerImgFilter(artUser.imageurl)" alt="" class="uphoto uphoto-big">
+            <div class="article-time-name bfc-d">
+              <div class="uname">
+                {{ artUser.username}}
+              </div>
+              <div class="ts utime">
+                <time v-text="$Tool.publishTimeFormat(article.publishtime)"></time>
+              </div>
             </div>
-            <div class="ts utime">
-              <time v-text="$Tool.publishTimeFormat(article.publishtime)"></time>
-              <!-- <span>{{ article.classify }}</span> -->
-            </div>
-          </div>
-          <button type="button" class="focus bfc-p fr" @click="handleDownLoad">关注</button>
+          </router-link>
+          <button type="button" class="focus bfc-p fr" v-if="userId != article.author" @click="handleDownLoad">{{focusState?'已关注':'关注'}}</button>
+          <button @click="handleWx">微信</button>
         </div>
-        <div class="content">
-          <div class="article-content" v-if='article.content'>
-            <p v-html="article.content"></p>
-            <div v-if="1 === article.type" class="phone-img clearfix">
-              <vue-picture-swipe :items="items" :options="{shareEl: false}"></vue-picture-swipe>
-
+        <template v-if="isHide">
+          <div class="content hideContent">
+            <div class="article-content summary" v-if='article.content'>
+              <p v-html="article.content"></p>
             </div>
-            <p style="font-size: .24rem; color: #888;">免责声明：直击真相爱心平台，仅为有正能量和社会价值的信息提供其发布与展示，如有侵权，请及时联系我们删除，谢谢您的支持！举报热线：18756686768</p>
-          </div>
+            <div class="showBtn">
+              <div class="openBtn" @click="handleOpenAll">
+                <img src="@/assets/images/open.gif" alt="">
+              </div>
 
-          <a :href="article.sourceurl" class="see-text" v-if="sourceShow">查看原文</a>
-        </div>
+              <div class="download-btn" @click="handleDownLoad">打开APP阅读全文</div>
+            </div>
+
+          </div>
+        </template>
+        <template v-else>
+          <div class="content showContent">
+            <div class="article-content" v-if='article.content'>
+              <p v-html="article.content"></p>
+              <div v-if="1 === article.type" class="phone-img clearfix">
+                <vue-picture-swipe :items="items" :options="{shareEl: false}"></vue-picture-swipe>
+              </div>
+              <p style="font-size: .24rem; color: #888;">免责声明：直击真相爱心平台，仅为有正能量和社会价值的信息提供其发布与展示，如有侵权，请及时联系我们删除，谢谢您的支持！举报热线：400-1106768</p>
+            </div>
+            <a :href="article.sourceurl" class="see-text" v-if="sourceShow">查看原文</a>
+          </div>
+        </template>
         <multIT v-for="(item,index) in aboutArticle" :article="item" :key="index" :ifSingle="true">
         </multIT>
-        <!-- <div class="keywords">
-                    <label>关键词：</label>
-                    <span v-for="item in article.keywords">{{ item }}</span>
-                </div> -->
         <div class="love-tip">
           <p class="red">爱心提示：</p>
           <p> 诈骗在中国已涉及到各行各业，高超的诈骗手段让人防不胜防！</p>
@@ -71,11 +84,11 @@
       </section>
       <prompt-blank v-if="proFail1" :mes="failMes1"></prompt-blank>
       <ul class="article-change clearfix">
-        <li class="item"  @click="handleDownLoad">
+        <li class="item" :class="{'likeActive':likeStatus}" @click="handleDownLoad">
           {{$Tool.numConvertText(likeNum)}}
           <like :likeStatus="likeStatus"></like>
         </li>
-        <li class="item" @click="handleReport">
+        <li class="item" @click="handleDownLoad">
           <span>举报</span>
           <i class="iconfont icon-warning-circle"></i>
         </li>
@@ -87,16 +100,16 @@
         <div class="hot-title">热门评论</div>
         <div class="hot-content">
           <ul class="hot-list">
-            <li class="hot-item clearfix" v-for="(item,index) in commentList">
-              <div class="hot-userphoto fl">
+            <li class="hot-item clearfix" v-for="(item,index) in commentList"  v-if="!isBlacklist(item.douserid)">
+              <div class="hot-userphoto fl" @click="goPerson(item.douserid)">
                 <img :src="$Tool.headerImgFilter(item.imageurl)">
               </div>
               <div class="hot-wrap fl">
                 <div class="hot-header clearfix">
-                  <h5 class="fl">{{item.username}}</h5>
-                  <p class="hot-fabulous fr" @click.stop="handleDownLoad">
+                  <h5 class="fl" @click="goPerson(item.douserid)">{{item.username}}</h5>
+                  <p class="hot-fabulous fr" :class="{'likeActive':item.ifLike}" @click="handleDownLoad">
                     <var class="hot-count">{{item.likeNum}}</var>
-                    <like :likeStatus="index==curLike?ifLike:0"></like>
+                    <like :likeStatus="item.ifLike" :key='index'></like>
                   </p>
                 </div>
                 <div class="hot-body clearfix">
@@ -113,7 +126,7 @@
                     </span>
                   </div>
                   <!-- <span class="hot-report fr">举报</span> -->
-                  <span class="hot-report fr"  v-if="item.douserid == userId">删除</span>
+                  <span class="hot-report fr"  v-if="item.douserid == userId" @click.stop="handleDelete(item.id, index, 1)" >删除</span>
                 </div>
               </div>
             </li>
@@ -124,9 +137,9 @@
       </div>
     </div>
     <!-- 伪评论框 -->
-    <div class="article-tabBar">
+    <div class="article-tabBar" v-show="inputToggle">
       <div class="tabBar clearfix">
-        <div class="article-input fl" @click="handleDownLoad">
+        <div class="article-input fl" @click="handleOpenInput">
           <i class="iconfont icon-comment"></i>
           <span>写评论...</span>
           <i class="iconfont icon-biaoqing"></i>
@@ -139,7 +152,7 @@
           <div class="item" @click="handleDownLoad">
             <i class="iconfont" :class="collectIcon ? 'icon-collected' : 'icon-not-collection'"></i>
           </div>
-          <div class="item"  @click="handleShare" style="display: none;">
+          <div class="item"  @click="handleShare">
             <i class="iconfont icon-share"></i>
           </div>
         </div>
@@ -147,19 +160,22 @@
     </div>
     <div class="pop-mask" v-show="popMask" @click="handleCancel">
     </div>
-    <!-- 举报框 -->
-    <div v-transfer-dom style="z-index: 988;">
-      <popup v-model="reportShow" style="z-index: 999;">
-        <div class="report-wrap">
-          <div class="report-header">
-            <h2>举报(举报热线：18756686768)</h2>
+    <!--评论框-->
+    <div v-transfer-dom class="transdom">
+      <popup v-model="popList.show" style="z-index: 588;">
+        <div class="popup-wrap">
+          <div class="popup-area">
+            <textarea
+              :placeholder="popList.placeholder"
+              v-model.trim="popList.desc"
+              @input="handleDesc"
+              autofocus
+              ref="popFocus" maxlength="300">
+              </textarea>
           </div>
-          <group>
-            <radio :selected-label-style="{color: '#FF9900'}" fill-mode :options="reportList" v-model="reportreasion">
-            </radio>
-          </group>
-          <div class="report-footer" @click="handleDownLoad">
-            确定
+          <div class="popup-btn clearfix">
+            <button type="button" class="popup-cancel fl" @click="handleCancel">取消</button>
+            <button type="button" class="popup-send fr" :class="{popupActive:popList.popupActive}" @click="handleDownLoad">发布</button>
           </div>
         </div>
       </popup>
@@ -172,43 +188,49 @@
 <script>
   import config from '@/lib/config/config'
   import like from '@/components/common/like'
-  import gallary from "@/components/Gallary"
-  // import memberList from '@/components/common/memberList'
   import netUtil from "@/service/util/netUtil"
   import listUtil from '@/service/util/listUtil'
+  import wxUtil from '@/service/util/wxUtil'
   import userService from '@/service/userService'
   import followService from '@/service/followService'
   import praiseService from '@/service/praiseService'
-  import reportService from '@/service/reportService'
   import articleService from '@/service/articleService'
   import readHistoryService from '@/service/readHistoryService'
   import articleFileService from '@/service/article_fileService'
   import articleCommentService from '@/service/article_commentService'
   import articleCollectService from '@/service/articleCollectService'
-  import messageService from '@/service/messageService'
-  import transmitService from '@/service/transmitService'
   import collapseTransition from "@/assets/js/elTransition"
-  const downloadUrl = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
   export default {
     components:{
       like,
-      collapseTransition,
-      memberList:() => import ('@/components/common/memberList'),
+      collapseTransition
     },
     data(){
       return {
+        isHide:true,
         isActive:false,
         toggleText:'展开',
         badgeShow:false,
         sourceShow:false,
-        reportShow:false,
+        reportToggle:true,
         popMask:false,
-        noComment:false,
-        hasComment:false,
+        noZan:false,
+        hasZan:false,
         noReply:false,
         hasReply:false,
         collectIcon:false,
+        collectToggle:{
+          notcollect:true,
+          collected:false
+        },
         shareShow:false,
+        inputToggle:true,
+        popList:{
+          show:false,
+          desc:'',
+          placeholder:'请文明发言，遵守评论规则...',
+          popupActive:false
+        },
         ifLoadMore:false,
         userId:localStorage.id,
         id:0,//文章id =>article.id
@@ -237,20 +259,6 @@
         proFail2:false,
         failMes1:"获取内容失败",
         failMes2:"获取评论失败",
-        commentCon:'',
-        //三级回复@的用户名
-        commentConAdd:'',
-        //底部评论框状态切换
-        ifCommentSwitch:false,
-        //评论回复显隐切换
-        ifReply:false,
-        //回复评论的id
-        replyCommentId:Number,
-        //回复评论人的id
-        replyUserId:Number,
-        //回复评论人的关注状态
-        //评论类型：1评论，2回复
-        commentType:1,
         //点赞
         curLike:Number,
         //点赞动画
@@ -265,20 +273,12 @@
         commentNum:0,
         //点赞状态
         likeStatus:false,
-        //举报显隐
-        ifReport:false,
-        //举报数组
-        reportList:Object.freeze(['淫秽色情','违法信息','营销广告','恶意攻击谩骂','拉黑该用户并屏蔽其内容'
-        ]),
         //显影分享
         ifShare:false,
         //评论加载分页
-        pageNum1:1,
-        //回复加载分页
-        pageNum2:1,
-        audioSrc:[],
+        pageNumComment:1,
         index:0,
-        articleImg:[],
+        iconShow:false,
         icon:'icon-touting',
         tag:false,
         //是否加载
@@ -313,8 +313,6 @@
             fullscreenToggle: true //全屏按钮
           }
         },
-        reportreasion:'',//"举报原因"
-        reportType:0,//举报类型 1:文章，2:评论
         shareDesc:{
           href:'',
           title:'',
@@ -322,6 +320,22 @@
           thumbs:[]
         },
         aboutArticle:[],
+        scrollTop:0,
+        shareObj:{
+          title:"",
+          desc:"",
+          link:"",
+          imgUrl:[]
+        }
+      }
+    },
+    activated(){
+
+
+      if(this.article.type == 2) {
+        this.isHide = false;
+      }else{
+        this.isHide = true;
       }
     },
     mounted(){
@@ -329,19 +343,23 @@
       this.id = this.$route.query.id;
       this.detailType = this.$route.query.detailType || 0;
       if(!localStorage.id || !localStorage.token){
+        this.focusState = false;
         this.collectIcon = false;
         this.ifLike = false;
         this.likeStatus = false;
       }
-
-      window.history.pushState(null, null, document.URL);
-      window.addEventListener('popstate', this.onBrowserBack, false);
-    },
-    destroyed(){
-      window.removeEventListener("popstate", this.onBrowserBack, false);
     },
     methods:{
+
       init(){
+        if (!this.id) {
+          this.$vux.alert.show({
+            content: '获取出错，请返回！',
+          });
+          this.$Tool.goBack();
+          return;
+        }
+        // this.ifLoad = true;
         //获取文章信息
         let resArticleDetail = articleService.getArticleById(this.id);
         if (resArticleDetail&&resArticleDetail.status == "success") {
@@ -359,6 +377,11 @@
             return
           }
           this.article = resArticleDetail.record;
+          if(!this.article.content){
+            this.iconShow = false;
+          }else{
+            this.iconShow = true;
+          }
           if(this.article.sourceurl == null) {
             this.sourceShow = false;
           }else{
@@ -367,13 +390,28 @@
         } else {
           this.proFail1 = true;
         }
+        //添加阅读记录
+        readHistoryService.addReadHistory(this.id,(data)=>{});
+        // if (resAddReadHistory && resAddReadHistory.status == "success") {
+        // }
 
         //获取发布人信息
         let resUserInfo = userService.getUserById(this.article.author);
         if (resUserInfo && resUserInfo.status == "success") {
           this.artUser = resUserInfo.result.user;
         }
-
+        // 是否关注发布人
+        if (localStorage.getItem('token')) {
+          followService.testFollow(this.article.author,(data)=>{
+            if (data && data.status == "success") {
+              if (data.result == 1) {
+                this.focusState = true;
+              } else {
+                this.focusState = false;
+              }
+            }
+          });
+        }
         // 文章附件 图片
         if (this.article.type != 3) {
           articleFileService.getFileByArticle(this.article.id,(data)=>{
@@ -386,11 +424,12 @@
                     src:this.fileRoot + arr[i].url,
                     thumbnail:this.fileRoot + arr[i].url,
                     w: 600,
-                    h: 460,
+                    h: 420,
                   };
                   this.items.push(obj);
                 }
               }else if(this.article.type == 2){
+                this.isHide = false;
                 let temp = data.result.filelist[0];
                 if (temp) {
                   this.playerOptions.sources[0].src = this.fileRoot + temp.url;
@@ -409,7 +448,16 @@
             this.likeNum = data.result.count;;
           }
         });
-
+        //用户是否给文章点赞
+        praiseService.testPraise(this.id,1,(data)=>{
+          if (data && data.status == "success") {
+            if (data.result == 1) {
+              this.likeStatus = true;
+            } else {
+              this.likeStatus = false;
+            }
+          }
+        });
         //获取评论数量
         articleCommentService.getArticleCommentCount(this.id,(data)=>{
           // console.log(data)
@@ -423,9 +471,18 @@
           }
         });
 
+        //是否收藏
+        articleCollectService.testCollect(this.id,(data)=>{
+          if (data && data.status == "success") {
+            if (data.result == 1 ) {
+              this.collectIcon = true;
+            } else {
+              this.collectIcon = false;
+            }
+          }
+        });
         //评论滚动近底部，自动加载 一屏1080
         this.loadComment();
-        this.ifLoad = false;
         // 获取文章相关推荐
         if (this.article.type != 2) {
           articleService.getTjwz(this.article.classify,data=>{
@@ -444,38 +501,106 @@
         }
         this.ifLoad = false;
       },
-
-      // 跳转下载页面
-      handleDownLoad(){
-        window.location.href = downloadUrl;
-      },
-      onBrowserBack(){
-        if(this.reportShow || this.popMask || this.shareShow){
-          this.reportShow = false;
-          this.popMask = false;
-          this.shareShow = false;
+      handleWx(){
+        // 分享内容对象
+        let reg = /[^\u4e00-\u9fa5]+/g;
+        let tempContent = this.article.content.replace(reg,"");
+        let url = location.href;
+        if(location.hash.length){
+          url = url.substr(0, url.indexOf(location.hash));
+          console.log(url)
         }
+
+        this.shareObj = {
+          title: this.article.title,
+          desc: tempContent.substring(0, 80),
+          href:url
+        };
+        if(this.article.type == 3) {
+          let temp = this.$Tool.extractImg(this.article.content, 1);
+          this.shareObj['imgUrl'] = temp[0];
+        }else if(this.ArticleFile.length) {
+          this.shareObj['imgUrl'] = [this.fileRoot + this.ArticleFile[0]['url']];
+        }else{
+          this.shareObj['imgUrl'] = [this.fileRoot + this.playerOptions.poster];
+        }
+        if (!this.shareObj['imgUrl']) {
+          this.shareObj['imgUrl'] = require('@/assets/images/logo-icon.png');
+        }
+        wxUtil.initShareFriend(url,this.shareObj);
       },
-
-
       // 爱心提示展开收起
       handleToggle(){
         this.isActive = !this.isActive;
         if(this.isActive){
           this.toggleText="收起";
-          this.arrowIcon = true;
         }else{
-          this.toggleText = "展开"
-          this.arrowIcon = false;
+          this.toggleText = "展开";
         }
+      },
+      // 打开评论框
+      handleOpenInput(){
+        this.textShow();
+        this.popList.placeholder = "请文明发言，遵守评论规则...";
       },
       // 取消评论框
       handleCancel(){
+        this.popList.desc = "";
+        this.popList.show = false;
         this.popMask = false;
         this.shareShow = false;
-        this.reportShow = false;
       },
 
+      // 评论框input事件
+      handleDesc(){
+        if(this.popList.desc) {
+          this.popList.popupActive = true;
+        }else{
+          this.popList.popupActive = false;
+        }
+      },
+      // 展开全文
+      handleOpenAll(){
+        this.isHide=false;
+      },
+      goPerson(userId){
+        this.$Tool.goPage({name:'publishedArticle',query:{userId}})
+      },
+
+      // 进入下载页
+      handleDownLoad(){
+        this.popList.show = false;
+        this.popList.desc = "";
+        this.$router.push({ path:'/download'})
+      },
+      // 删除评论
+      handleDelete(itemid, index, type){
+        const thiz = this;
+        let deleteData = articleCommentService.deleteArticleConmon(itemid);
+        this.$vux.confirm.show({
+          content:'确认删除评论？',
+          onConfirm(){
+            thiz.$vux.loading.show();
+            if(deleteData && deleteData.status == "success") {
+              setTimeout(()=>{
+                if(type == 1) {
+                  thiz.commentList.splice(index,1);
+                  thiz.commentNum --;
+                  thiz.$vux.loading.hide();
+                  thiz.$vux.toast.show({
+                    text:'删除成功'
+                  });
+                  if(thiz.commentList.length <= 0) {
+                    thiz.proFail2 = true;
+                    thiz.ifLoadMore = false;
+                    thiz.badgeShow = false;
+                  }
+                }
+              },500);
+            }
+          }
+        })
+      },
 
       // 分享
       handleShare(){
@@ -488,6 +613,7 @@
           title: this.article.title,
           content: tempContent.substring(0,80)
         };
+        console.log(this.shareDesc)
         if (this.article.type == 3) {
           let temp = this.$Tool.extractImg(this.article.content,1);
           this.shareDesc['thumbs'] = temp[0];
@@ -500,7 +626,7 @@
           this.shareDesc['thumbs'] = require('@/assets/images/logo-icon.png');
         }
       },
-
+      //二级三级回复
 
       // 点击消息滚动
       handleComment(){
@@ -508,27 +634,22 @@
         $(".detail").animate({scrollTop:dis},100);
       },
 
+
       /**
-       * 举报
-       * @param  Number type 举报类型 1:文章，2:评论
+       * 提交举报
        * @return {[type]}      [description]
        */
-      handleReport(){
-        this.reportShow = true;
-        this.popMask = true;
-      },
-
 
       /*----------------加载-函数---------------------*/
       // 加载评论
       loadComment(){
         // 获取文章一级评论列表
         this.ifLoadMore = true;
-        let resArticleCommentList = articleCommentService.getArticleCommentPage(this.id, this.pageNum1, 10);
+        let resArticleCommentList = articleCommentService.getArticleCommentPage(this.id, this.pageNumComment, 10);
+        if(this.pageNumComment == 1) {
+          this.commentList = [];
+        }
         if(resArticleCommentList && resArticleCommentList.status == "success") {
-          if(this.pageNum1 == 1) {
-            this.commentList = [];
-          }
           listUtil.appendList(this.commentList,resArticleCommentList.list.list);
           listUtil.asyncSetListPropty(resArticleCommentList.list.list,(item)=>{
             // 获取文章一级评论人信息
@@ -569,18 +690,22 @@
             this.proFail2 = false;
             this.loadText = "已加载全部";
           } else {
-            this.pageNum1 ++;
+            this.pageNumComment ++;
           }
         } else {
           this.proFail2 = true;
         }
       },
-
       // 页面加载后渲染函数
-      loadScroll(){
-        if (!this.lock && ($(".detail").scrollTop() + $(".detail").height()) > $(".detail")[0].scrollHeight-10) {
+      loadScroll(e){
+        this.scrollTop = $(e.target).scrollTop();
+        if (!this.lock && ($(".detail").scrollTop() + $(".detail").innerHeight()) > $(".detail")[0].scrollHeight - 10) {
           this.loadComment();
         }
+      },
+      textShow(){
+        this.popList.show = true;
+        this.$refs.popFocus.focus();
       },
       onPlayerPlay(){
         if (!this.$store.state.notWifi) {
@@ -597,7 +722,6 @@
               content:"当前处于非WIFI网络下，是否继续播放",
               onConfirm(){
                 _this.$store.state.notWifi = true;
-                //_this.onPlayerPlay();//无效
               }
             })
           }
@@ -607,71 +731,60 @@
         this.$refs.videoPlayer.player.pause();
       },
     },
+    computed:{
+      // 判断是否黑名单
+      isBlacklist(){
+        return function (item) {
+          return this.$store.state.blacklist.includes(item);
+        }
+      }
+    },
+    beforeRouteLeave(to, from , next){
+      if(this.popList.show == true || this.popMask == true || this.shareShow == true){
+        this.popList.show =false;
+        this.popMask = false;
+        this.shareShow =false;
+        next(false);
+      } else{
+
+        next()
+      }
+    },
     watch:{
       id(){
-        // debugger
+        this.proFail1 = false;
         this.ifLoad = true;
+        $(".detail").scrollTop(0);
         setTimeout(()=>{
-          this.pageNum1 = 1;
+          this.pageNumComment = 1;
           this.init();
-          if (true) {}
           // this.ifLoad = false;
         },delay)
         //注：延迟时长必须在动画大于切换动画（300）
       },
-      reportShow:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
-      popMask:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
-      shareShow:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
-      reportShow:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
       $route(to,from) {
-        // debugger
         if (to.query.id) {
           this.id = to.query.id;
+          $(".detail").scrollTop(this.scrollTop)
           this.detailType = this.$route.query.detailType || 0;
           if(!localStorage.id || !localStorage.token){
+            this.focusState = false;
             this.collectIcon = false;
-            this.ifLike = false;
             this.likeStatus = false;
           }
+          this.ifLike = false;
         }
       }
-    }
+    },
   }
 </script>
 
 <style lang="less" scoped>
   .mask{
     position: absolute;
-    background: linear-gradient(transparent 3%,#fafafa 3%);
+    /*background: linear-gradient(transparent 3%,#fafafa 3%);*/
     z-index: 999;
+    background-color: #fafafa;
   }
   .detail{
     position: relative;
@@ -683,6 +796,7 @@
     .content-wrap{
       .article-title{
         padding-top: .4rem;
+        // padding-bottom: .2rem;
         font-size: .42rem;
         line-height: .58rem;
         letter-spacing: .02rem;
@@ -718,15 +832,13 @@
           }
         }
         .focus{
-          width: 1.16rem;
-          height: .56rem;
-          line-height: .56rem;
+          padding: .1rem .2rem;
           margin-top: .1rem;
+          vertical-align: middle;
           text-align: center;
           color: #fff;
           border-radius: .1rem;
           background-color: @mainColor;
-          border: .02rem solid transparent;
         }
         .btnActive{
           background-color: #fafafa;
@@ -735,6 +847,7 @@
         }
       }
       .content{
+
         // padding-bottom: .45rem;
         .article-content{
           // padding-bottom: .4rem;
@@ -754,6 +867,8 @@
             text-align: center;
           }
         }
+        // .phone-content{
+        // padding-bottom: .4rem;
         .phone-img{
           width: 100%;
           .tel-img{
@@ -783,6 +898,60 @@
           color: #999;
         }
 
+      }
+      .hideContent{
+        background-color: #fff;
+        padding-bottom: 0;    /* 方便渐变层遮挡 */
+        position: relative;    /* 用于子元素定位 */
+        margin-bottom: .5rem;
+        .summary{
+          overflow: hidden;    /* 隐藏溢出内容 */
+          text-overflow: clip;    /* 修剪文本 */
+          display: -webkit-box;    /* 弹性布局 */
+          -webkit-box-orient: vertical;    /* 从上向下垂直排列子元素 */
+          -webkit-line-clamp: 4;    /* 限制文本仅显示前三行 */
+          p{
+            line-height: .8rem;
+
+          }
+
+        }
+        .showBtn{
+          width: 100%;    /* 与背景宽度一致 */
+          height: 2rem;
+          position: absolute;    /* 相对父元素定位 */
+          top: 1rem;    /* 刚好遮挡在最后两行 */
+          left: 0;
+          z-index: 0;    /* 正序堆叠，覆盖在p元素上方 */
+          text-align: center;
+          background: linear-gradient(rgba(233,236,239,.5), white);
+          .openBtn{
+            width: 100%;
+            padding: .2rem 0;
+            position: absolute;
+            bottom: 1.2rem;
+            text-align: center;
+            .iconfont{
+              display: inline-block;
+              font-size: .35rem;
+              color: #fa6304;
+            }
+          }
+
+          .download-btn{
+            position: absolute;
+            left: 0;
+            bottom: .6rem;
+            width: 100%;
+            height: .65rem;
+            line-height: .65rem;
+            text-align: center;
+            border-radius: .4rem;
+            letter-spacing: .02rem;
+            background: linear-gradient(to bottom left, #ffb037,#ff9237,#ff6c37);
+            color: #fff;
+          }
+        }
       }
       .keywords{
         margin: .6rem 0;
@@ -818,6 +987,7 @@
       }
       .iconfont{
         font-size: .32rem;
+        // color: #222;
         padding-right: .03rem;
       }
       span{
@@ -829,20 +999,6 @@
   }
   .likeActive{
     color: #f40;
-  }
-  .article-menu{
-    line-height: .8rem;
-    background-color: #fff;
-    border-bottom: .02rem solid @borderColor;
-    display: flex;
-    li{
-      flex: 1;
-      text-align: center;
-    }
-    .current{
-      border-bottom: .04rem solid #f85959;
-      color: #f85959;
-    }
   }
   .hot-comment{
     padding-top: .56rem;
@@ -901,6 +1057,11 @@
           padding-top: .1rem;
           .hot-text{
             line-height: .45rem;
+            // overflow:hidden;
+            // text-overflow:ellipsis;
+            // display:-webkit-box;
+            // -webkit-box-orient:vertical;
+            // -webkit-line-clamp:4;
           }
           .hot-open{
             position: absolute;
@@ -1016,6 +1177,216 @@
 
     }
   }
+  .popup-wrap {
+    width: 100%;
+    padding: .2rem;
+    background-color: #f4f4f4;
+    .popup-area{
+      width: 100%;
+      height: 1.8rem;
+      margin-bottom: .2rem;
+      textarea{
+        width: 100%;
+        height: 100%;
+        background-color: #fff;
+        border: .02rem solid @borderColor;
+        border-radius: .2rem;
+        padding: .13rem .18rem;
+        font-size: .28rem;
+        resize:  none;
+        &::-webkit-input-placeholder{color:#999;}
+        &:-moz-placeholder{color:#999;}
+        &::-moz-placeholder{color:#999;}
+        &:-ms-input-placeholder{color:#999;}
+      }
+    }
+    .popup-btn{
+      button{
+        width: 1.2rem;
+        height: .6rem;
+        border: .02rem solid transparent;
+        border-radius: .2rem;
+      }
+      .popup-cancel{
+        border-color: #dadada;
+        background-color: #f4f4f4;
+        color: #808080;
+      }
+      .popup-send{
+        background-color: #dadada;
+        color: #fff;
+      }
+      .popupActive{
+        background-color: #f85959;
+      }
+    }
+  }
+  .reply-wrap{
+    height: 100vh;
+    border-radius: .3rem .3rem 0 0;
+    background-color: #fff;
+    .reply-header{
+      position: relative;
+      left: 0;
+      top: 0;
+      height: .89rem;
+      line-height: .89rem;
+      padding: 0 .36rem;
+      text-align: center;
+      border-bottom: .02rem solid @borderColor;
+      .iconfont {
+        position: absolute;
+        left: .36rem;
+        font-size: .45rem;
+        font-weight: 700;
+      }
+      span{
+        letter-spacing: .02rem;
+        font-size: .32rem;
+      }
+    }
+    .reply-body{
+      width: 100%;
+      height: calc(100vh - 1.5rem);
+      overflow-y: auto;
+      // overflow: auto;
+      // padding: .32rem .3rem;
+      padding: .32rem .3rem 1rem .3rem;
+      .reply-container{
+        width: 100%;
+        &:first-child{
+          border-bottom: .02rem solid @borderColor;
+          padding-bottom: 10px;
+        }
+        .reply-box{
+          margin-bottom: .5rem;
+        }
+        .reply-img{
+          width: .64rem;
+          height: .64rem;
+          border-radius: 50%;
+          margin-right: .25rem;
+          img{
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+          }
+        }
+        .reply-content{
+          width: calc(100% - .89rem);
+          .header{
+            .header-desc{
+              display: inline-block;
+              font-size: .24rem;
+              h4{
+                font-weight: normal;
+                color: #406599;
+                // padding-bottom: .13rem;
+                line-height: .5rem;
+              }
+              span{
+                color: #979fac;
+              }
+            }
+            // .reply-fabulous{
+            //  color: #979fac;
+            //  span{
+            //    font-size: .24rem;
+            //    margin-right: -.1rem;
+            //  }
+            //  .iconfont{
+            //    font-size: .36rem;
+            //  }
+            //  .icon-weizan{
+            //    color: #979fac;
+            //  }
+            // }
+            .header-focus{
+              font-weight: 700;
+              font-size: .24rem;
+              line-height: .5rem;
+              color: #f96565;
+            }
+          }
+          .reply-desc{
+            margin: .26rem 0;
+            p{
+              line-height: .45rem;
+            }
+          }
+          .reply-time-report{
+            font-size: .24rem;
+            color: #979fac;
+          }
+          .reply-time-delete{
+            font-size: .24rem;
+            .reply-point{
+              color: #666;
+              padding: 0 .15rem;
+            }
+          }
+          .reply-footer{
+            // padding: .26rem 0;
+            height: 1rem;
+            line-height: 1rem;
+            .reply-footer-wrap{
+              .reply-list{
+                max-width: 1.68rem;
+                height: .48rem;
+                margin-top: .26rem;
+                margin-right: .18rem;
+                overflow: hidden;
+                .reply-item{
+                  float: left;
+                  width: .48rem;
+                  height: .48rem;
+                  margin-right: .08rem;
+                  border-radius: 50%;
+                  img{
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                  }
+                }
+              }
+              .reply-footer-desc{
+                font-size: .24rem;
+                color: #222;
+                .iconfont{
+                  font-size: .3rem;
+                }
+              }
+            }
+
+          }
+
+        }
+      }
+      .reply-discuss{
+        line-height: .8rem;
+      }
+      .isDiscuss{
+        line-height: .8rem;
+        padding-left: .89rem;
+      }
+    }
+  }
+  .reply-fabulous{
+    // color: #979fac;
+
+    span{
+      font-size: .24rem;
+      margin-right: -.1rem;
+    }
+    .iconfont{
+      font-size: .36rem;
+    }
+    .icon-weizan{
+      color: #979fac;
+    }
+  }
   .report-wrap{
     padding-top: .2rem;
     background-color: #f8f8f8;
@@ -1029,9 +1400,12 @@
       }
     }
     .report-footer{
+      // padding:  0 .56rem;
       line-height: .8rem;
       font-size: .32rem;
       text-align: center;
+      // color: #222;
+      // border-top: .02rem solid @borderColor;
       background-color: #fff;
     }
   }
@@ -1048,7 +1422,7 @@
     background: rgba(0, 0, 0, 0.5);
     z-index: 502;
     tap-highlight-color: rgba(0, 0, 0, 0);
-    transition: opacity 400ms
+    transition: opacity 400ms;
 
   }
   .video-js .vjs-big-play-button{
@@ -1135,7 +1509,7 @@
     border: .02rem solid #e8e8e8;
     text-align: center;
   }
-  .vux-popup-show{
-    /*z-index: 999 !important;*/
+  .hideContent >>> p img{
+    display: none;
   }
 </style>

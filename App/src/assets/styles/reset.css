@@ -16,7 +16,7 @@ small { font-size: 12px; } /* 小于 12px 的中文很难阅读，让 small 正�
 fieldset{ border: 0; } 
 li{ list-style: none; }
 [contenteditable = "true"], input, textarea {
--webkit-user- select: auto!important;
+-webkit-user-select: auto!important;
 -khtml-user-select: auto!important;
 -moz-user-select: auto!important;
 -ms-user-select: auto!important;

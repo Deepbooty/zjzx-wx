@@ -73,9 +73,12 @@
       <span class="editInfo-setup-tip">社交平台账号绑定</span>
       <group>
         <x-switch title="微信" :prevent-default="true" v-model="isWechat" :disabled="isWechat" @on-click="authLogin('wechat')"></x-switch>
+        <x-switch title="腾讯QQ" :prevent-default="true" v-model="isQQ" :disabled="isQQ" @on-click="authLogin('qq')"></x-switch>
         <x-switch title="新浪微博" :prevent-default="true" v-model="isSina" :disabled="isSina" @on-click="authLogin('sina')"></x-switch>
-        <!-- <x-switch title="腾讯QQ" :prevent-default="true" v-model="isQQ" :disabled="isQQ" @on-click="authLogin('qq')"></x-switch> -->
       </group>
+      <!-- <div ref="test" style="word-wrap: break-word;word-break:break-all; ">
+        
+      </div> -->
     </div>
     <!-- 用户名弹框 -->
     <div v-transfer-dom class="transdom">
@@ -268,45 +271,13 @@
       },delay)
     },
     mounted() {
-      window.history.pushState(null, null, document.URL);
-      window.addEventListener('popstate', this.onBrowserBack, false);
       try{
         authUtil.init();
       }catch(err){
         
       }
     },
-    destroyed(){
-      window.removeEventListener("popstate", this.onBrowserBack, false);
-    },
-    watch:{
-      "popList.show":{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
-      showSex:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
-      ifCropper:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
-    },
     methods: {
-
       init(){
         if (!localStorage.id) {return;}
         let data = userService.getCurentUser();
@@ -383,18 +354,8 @@
         this.user.qq_unionid && (this.isQQ = true)
         // 判断绑定sina
         this.user.xl_openid && (this.isSina = true)
+        // console.log(this.user)
       },
-      onBrowserBack(){
-        if(this.popList.show || this.showSex || this.showMobile || this.showCode || this.ifCropper){
-          this.popList.show = false;
-          this.showSex = false;
-          this.showMobile = false;
-          this.showCode = false;
-          this.ifCropper = false;
-        }
-      },
-
-
       //上传头像
       commitUpload(){
         this.$vux.loading.show({
@@ -675,16 +636,32 @@
             text: '修改成功'
           });
         }
-        callback (data);
+        callback(data);
       },
       // 授权绑定第三方账号
       authLogin(type){
         const _this = this;
         switch (type){
           case "wechat":
+          if (this.isWechat) {
+            this.$vux.alert.show({
+              content:'已经成功绑定！',
+            })
+            return
+          }
           authUtil.loginByWx(function(resMap){
             if(resMap.status === "success"){
               let params = resMap.result.wx_user;
+              // 根据微信unionid判断用户师傅绑定微信号
+              let resBind = userService.getUserByWxUid(params.wx_unionid)
+              // _this.$refs.test.innerHTML = JSON.stringify(resBind)
+              if (resBind.user) {
+                _this.$vux.alert.show({
+                  content:'该微信号已被使用！',
+                })
+                return
+              }
+              // _this.$refs.test.innerHTML = JSON.stringify(resBind) + '--wechat'
               /*{
                 "sex":"男",
                 "wx_openid":"oRrdQt6Rx5HoGnbKAgG_Wpl0zK44",
@@ -697,14 +674,30 @@
               _this.user.wx_image = params.wx_image;
               _this.user.wx_unionid = params.wx_unionid;
               userService.updateUser(_this.user);
-              _this.isWechat = true;
+              params.wx_unionid && (_this.isWechat = true);
             }
           })
           break;
           case "qq":
+          if (this.isQQ) {
+            this.$vux.alert.show({
+              content:'已经成功绑定！',
+            })
+            return
+          }
           authUtil.loginByQQ(function(resMap){
             if(resMap.status === "success"){
               let params = resMap.result.qq_user;
+              // 根据QQ unionid判断用户师傅绑定微信号
+              let resBind = userService.getUserByQQUid(params.qq_unionid)
+              // _this.$refs.test.innerHTML = JSON.stringify(resBind)
+              if (resBind.user) {
+                _this.$vux.alert.show({
+                  content:'该QQ号已被使用！',
+                })
+                return
+              }
+              // _this.$refs.test.innerHTML = JSON.stringify(resBind) + '--QQ'
               /*{
                 "qq_openid":"F6DC81D7DEA4AA7AC94A2C6E57F96C09",
                 "qq_nikname":"被博士",
@@ -716,25 +709,41 @@
               _this.user.qq_image = params.qq_image;
               _this.user.qq_unionid = params.qq_unionid;
               userService.updateUser(_this.user);
-              _this.isQQ = true;
+              params.qq_unionid && (_this.isQQ = true);
             }
           })
           break;
           case "sina":
+          if (this.isSina) {
+            this.$vux.alert.show({
+              content:'已经成功绑定！',
+            })
+            return
+          }
           authUtil.loginByXl(function(resMap){
             if(resMap.status === "success"){
               let params = resMap.result.xl_user;
+              // 根据 sina openid 判断用户师傅绑定微信号
+              let resBind = userService.getUserByXlopenid(params.xl_openid)
+              if (resBind.user) {
+                _this.$vux.alert.show({
+                  content:'该新浪号已被使用！',
+                })
+                return
+              }
               /*{"xl_user":{"sex":"男","xl_nikname":"用户6311798622","xl_image":"http://tvax3.sinaimg.cn/default/images/default_avatar_male_50.gif"}}*/
               _this.user.xl_openid = params.xl_openid;
               _this.user.xl_nikname = params.xl_nikname;
               _this.user.xl_image = params.xl_image;
               userService.updateUser(_this.user);
-              _this.isSina = true;
+              params.xl_openid && (_this.isSina = true);
             }
           })
           break;
           default:
-          console.log("授权出错")
+          this.$vux.alert.show({
+            content:'无效操作！',
+          })
         }
       }
     },
@@ -744,7 +753,19 @@
       }else{
         next();
       }
-    }
+    },
+    beforeRouteLeave(to, from , next){
+      if(this.popList.show == true || this.showSex == true || this.showMobile == true || this.showCode == true || this.ifCropper == true){
+        this.popList.show = false;
+        this.showSex = false;
+        this.showMobile = false;
+        this.showCode = false;
+        this.ifCropper = false;
+        next(false);
+      } else{
+        next()
+      }
+    },
   }
 
 </script>
@@ -785,15 +806,23 @@
           font-size: .32rem;
         }
         .editInfo-img {
+          position: relative;
           width: .7rem;
           height: .7rem;
-          border-radius: 50%;
-          border: .02rem solid @borderColor;
+          line-height: .7rem;
           margin-top: .1rem;
+          border-radius: 50%;
           margin-right: .1rem;
           img{
-            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: .02rem solid @borderColor;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
+            object-fit: fill;
           }
         }
         .editInfo-desc{

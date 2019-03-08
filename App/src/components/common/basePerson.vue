@@ -22,26 +22,26 @@
               粉丝
             </li>
           </ul>
-          <div class="member-msg-btn">
-            <button class="btn btn-edit" @click="handleDownLoad">账号设置</button>
-            <button class="btn btn-apply" @click="handleDownLoad">申请认证</button>
+          <div class="member-msg-btn" v-if="loginUserId == userId">
+            <button class="btn btn-apply" @click="$Tool.goPage({ name:'identityIndex',query:{'title':'申请认证'}})">申请认证</button>
           </div>
-         <!-- <div v-else>
-            &lt;!&ndash; 访客所见 &ndash;&gt;
-            <div class="visitor-black" v-if="blackState" @click="handleCloseBlack">解除拉黑</div>
+          <div v-else>
+            <!-- 访客所见 -->
+            <div class="visitor-black" v-if="blackState" @click="handleDownLoad">解除拉黑</div>
             <div
               v-else
               class="visitor-focus"
-              :class="btnState ? 'default-focus' : 'active-focus'"
-              @click="handleFocus(userId)">
+              :class="btnState ? 'default-focus' : 'active-focus'" @click="handleDownLoad">
               {{focusState ? "已关注" : "关注"}}
             </div>
-          </div>-->
+          </div>
         </div>
       </div>
     </div>
     <div class="member-tab">
-      <tab :line-width="2" v-model="current" v-show="loginUserId == userId" key='1'>
+      <ul class="member-switch">
+      </ul>
+      <tab :line-width="2" v-model="current" active-color='#faaf0c' v-show="loginUserId == userId" key='1'>
         <tab-item v-for="(item, index) in switchListPublic" :key="item.id">
           <router-link class="block" :to="{path:item.path,query:{userId}}" replace>
             {{item.desc}}
@@ -53,13 +53,14 @@
           </router-link>
         </tab-item>
       </tab>
-      <tab v-show="loginUserId != userId" :line-width="2" v-model="currentSub" key='2'>
+      <tab v-show="loginUserId != userId" :line-width="2" active-color='#faaf0c'  v-model="currentSub" key='2'>
         <tab-item v-for="(item, index) in switchListPublic" :key="item.id+10">
           <router-link class="block" :to="{path:item.path,query:{userId}}" replace>
             {{item.desc}}
           </router-link>
         </tab-item>
       </tab>
+
     </div>
     <keep-alive>
       <router-view class="router-view" :key="$route.name"></router-view>
@@ -73,8 +74,6 @@
   import followService from '@/service/followService'
   import interService from '@/service/interlocutionService'
   import userService from '@/service/userService'
-  import weChatService from '@/service/weChatService'
-  const downloadUrl = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
   export default {
     data(){
       return {
@@ -83,7 +82,6 @@
         current:0,
         currentSub:0,
         currentName:"全部",
-        showGallary:false,
         focusState:false,
         btnState:false,
         blackState:false,
@@ -91,7 +89,7 @@
           src: '',
           thumbnail: '',
           w: 600,
-          h: 520,
+          h: 580,
         }],
         title:'',
         userPhoto:'',
@@ -121,10 +119,17 @@
     methods:{
       init(){
         // 头像预览
-          this.items[0].src =localStorage.imageurl;
-          this.items[0].thumbnail = localStorage.imageurl;
-          this.title = localStorage.username;
-
+        if(localStorage.id && localStorage.id == this.userId){
+          this.title = localStorage.userName;
+          this.items[0].src = localStorage.userImg;
+          this.items[0].thumbnail = localStorage.userImg;
+        }
+        let userInfoData = userService.getUserById(this.userId);
+        if(userInfoData && userInfoData.status == "success"){
+          this.items[0].src = this.$Tool.headerImgFilter(userInfoData.result.user.imageurl);
+          this.items[0].thumbnail = this.$Tool.headerImgFilter(userInfoData.result.user.imageurl);
+          this.title = userInfoData.result.user.username;
+        }
         //获取文章数量
         articleService.getUserArticleCount(this.userId,(data)=>{
           if (data && data.status == "success" ) {
@@ -175,63 +180,20 @@
           }
         }
       },
-      // 关注用户
-      handleFocus(userid){
-        let data = followService.doFollow(userid);
-        if(data && data.status == "success"){
-          if(data.result == 1){
-            this.$vux.loading.show();
-            setTimeout(()=>{
-              this.focusState = true;
-              this.btnState =true;
-              this.$vux.loading.hide();
-            },500);
-          }else{
-            this.$vux.loading.show();
-            setTimeout(()=>{
-              this.focusState = false;
-              this.btnState = false;
-              this.$vux.loading.hide();
-            },500);
-          }
-        }
-      },
-      // 跳转下载页面
       handleDownLoad(){
-        window.location.href = downloadUrl;
-      },
-
-      // 解除拉黑
-      handleCloseBlack() {
-        let data = userService.Unblacklist(this.userId);
-        this.$vux.loading.show();
-        if(data && data.status == "success") {
-          setTimeout(()=>{
-            this.blackState = false;
-            this.$vux.loading.hide();
-          },500);
-        }
+        this.$router.push({ path:'/download'});
       }
+
     },
     watch:{
-      showGallary:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
       userId(){
         this.init();
       },
       $route(to,from){
-        // to.query.userId ? (this.userId = to.query.userId):this.userId = localStorage.id;
         to.query.userId && (this.userId = to.query.userId)
         if(this.$route.name === 'publishedArticle'){
           this.ifSelf?this.current = 0:this.currentSub = 0;
         }
-        // console.log(this.current)
       },
     },
     computed:{
@@ -239,17 +201,11 @@
         return (localStorage.id == this.userId);
       }
     },
-    // activated() {
-    //   	this.$nextTick(()=>{
-    //       this.init();
-    //   	})
-    // },
-  /*  beforeRouteEnter (to, from, next) {
-      // console.log(from);
+    beforeRouteEnter (to, from, next) {
       if (!to.query.userId && !localStorage.id) {
         GoTruth.$vux.alert.show({
           content:'您还未登录',
-        })
+        });
         return false;
       }
       next((vm)=>{
@@ -258,15 +214,13 @@
           vm.userId = localStorage.id;
         }
         vm.current = Number(to.query.current || vm.current);
-        // vm.init();
       });
-    },*/
+    },
   }
 </script>
 
 <style lang="less" scoped>
   .member-msg{
-    // margin-top: calc(@topHeigth + .18rem);
     position: relative;
     padding: .3rem .4rem;
     background-position: 0 0;
@@ -277,20 +231,6 @@
     .member-msg-header{
       display: flex;
       overflow: hidden;
-/*      .member-msg-image{
-        width: 1.4rem;
-        height: 1.4rem;
-        border-radius: 50%;
-        overflow: hidden;
-        // margin-right: .6rem;
-        img {
-          display: block;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          border: .04rem solid @borderColor;
-        }
-      }*/
       .member-msg-modal {
         position: absolute;
         right: .4rem;
@@ -311,11 +251,14 @@
         }
       }
       .member-msg-btn{
-        margin-top: .2rem;
+        margin-top: .3rem;
         button {
-          padding: .08rem .2rem;
+          width: 3rem;
+          height: .55rem;
+          line-height: .55rem;
+          text-align: center;
           color:#66b3ff;
-          font-size: .24rem;
+          font-size: .28rem;
           border: .02rem solid #66b3ff;
           border-radius: .24rem;
           margin-right: .2rem;
@@ -332,11 +275,7 @@
 
       }
       .visitor-focus,.visitor-black{
-        width: 2.8rem;
-        height: .52rem;
-        line-height: .5rem;
-        text-align: center;
-        box-sizing: border-box;
+        padding: .1rem 1.1rem;
         letter-spacing: .04rem;
         border-radius: .1rem;
         position: absolute;

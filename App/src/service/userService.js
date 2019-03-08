@@ -101,6 +101,51 @@ service.getUserById = function(targetuserid,call) {
 	return resUserInfo;
 }
 
+//根据微信unionid判断用户师傅绑定微信号
+service.getUserByWxUid = function(uid,call) {
+	
+	var params = {
+		uid
+	};
+	if (call) {
+		commonUtil.ajax(controller+'/getUserByWxUid',params,call);
+		return;
+	}
+	var resUserInfo = commonUtil.ajaxAsync(controller+'/getUserByWxUid',params);
+
+	return resUserInfo;
+}
+
+//根据QQ unionid判断用户师傅绑定微信号
+service.getUserByQQUid = function(uid,call) {
+	
+	var params = {
+		uid
+	};
+	if (call) {
+		commonUtil.ajax(controller+'/getUserByQQUid',params,call);
+		return;
+	}
+	var resUserInfo = commonUtil.ajaxAsync(controller+'/getUserByQQUid',params);
+
+	return resUserInfo;
+}
+
+//根据新浪openid判断用户师傅绑定微信号
+service.getUserByXlopenid = function(openid,call) {
+	
+	var params = {
+		openid
+	};
+	if (call) {
+		commonUtil.ajax(controller+'/getUserByXlopenid',params,call);
+		return;
+	}
+	var resUserInfo = commonUtil.ajaxAsync(controller+'/getUserByXlopenid',params);
+
+	return resUserInfo;
+}
+
 //更新用户信息
 service.updateUser = function(user) {
 	// debugger;
@@ -241,8 +286,4 @@ service.testLh = function (targetuserid,call) {
   return data;
 };
 
-
-
-
 export default service
-

@@ -95,7 +95,6 @@ export default {
 }
 .share-wrap{
 	display: flex;
-	height: 90px;
 	justify-content: space-around;
 	align-items: center;
 }

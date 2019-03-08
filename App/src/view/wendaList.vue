@@ -13,13 +13,19 @@
             <img :src=" $Tool.headerImgFilter(wenda.imageurl)">
             <span>{{wenda.username}}</span>
           </div>
-          <div class="user-focus active-color fr" @click="handleDownLoad">关注</div>
+          <div
+            class="user-focus fr"
+            :class="focusColor ? 'default-color' : 'active-color'"
+            v-if="userId != wenda.userid"
+            @click="handleDownLoad"
+            >
+            {{focusState ? '已关注' : '关注'}}
+          </div>
         </div>
         <h2 class="title">{{wenda.title}}</h2>
         <div class="desc" >
           <p class="desc-text">{{wenda.description}}</p>
         </div>
-
         <vue-picture-swipe :items="items" :options="{shareEl: false}" v-show="ifImgNull"></vue-picture-swipe>
 
         <div class="wendaList-tip clearfix">
@@ -39,7 +45,7 @@
            v-show="hasAnswer"
            v-for="(item,index) in answer"
            @click="goAnswerDetail(wenda,item)"
-          >
+           v-if="!isBlacklist(item.author)">
         <div class="header">
           <div class="header-user">
             <img :src="$Tool.headerImgFilter(item.imageurl)" class="userPhoto">
@@ -58,8 +64,18 @@
         </div>
         <div class="footer clearfix">
           <div class="fl">
+
             <span>{{item.answerCommentNum}}评论</span>
+
             <span>{{item.publishtime}}</span>
+          </div>
+          <!--  -->
+          <!-- v-if="ifDel" -->
+          <div class="fr article-remove" @click="$emit('delete',[item.id,$event])" v-if="ifDel">
+            <i class="iconfont icon-remove"></i>
+          </div>
+          <div class="fr article-remove" v-if="userId == item.author" @click.stop="handleCloseAnswer(item.id, index)">
+            <i class="iconfont icon-remove"></i>
           </div>
 
         </div>
@@ -70,38 +86,27 @@
       </div>
     </div>
     <div class="wendaList-footer">
-      <div class="item">
+      <div class="item"  @click="handleDownLoad">
         <i class="iconfont" :class="collectIcon ? 'icon-collected' : 'icon-not-collection'"></i>
         <span>{{collectState?'已收藏':'收藏'}}</span>
       </div>
-      <!-- <div class="item" @click="$Tool.goPage({ name:'release',query:{title:'发表问题',sort:3}})">
-           <i class="iconfont icon-fabu"></i>
-           <span>提问</span>
-       </div>-->
-      <div class="item" @click="handleShare" style="display: none;">
-        <i class="iconfont icon-share"></i>
-        <span>分享</span>
-      </div>
-      <div class="item" @click="handleDownLoad">
+      <div class="item"  @click="handleDownLoad">
         <i class="iconfont icon-comment"></i>
         <span>回答</span>
       </div>
     </div>
-    <!-- 分享 -->
-    <share :content="shareDesc" v-model="shareShow"></share>
-
     <!--举报-->
     <div v-transfer-dom style="z-index: 988;">
       <popup v-model="reportShow" style="z-index: 999;">
         <div class="report-wrap">
           <div class="report-header">
-            <h2>举报(举报热线：18756686768)</h2>
+            <h2>举报(举报热线：400-1106768)</h2>
           </div>
           <group>
             <radio :selected-label-style="{color: '#FF9900'}" fill-mode :options="reportList" v-model="reportreasion">
             </radio>
           </group>
-          <div class="report-footer" @click="handleDownLoad">
+          <div class="report-footer"  @click="handleDownLoad">
             确定
           </div>
         </div>
@@ -112,16 +117,18 @@
 <script>
   import config from '@/lib/config/config'
   import listUtil from '@/service/util/listUtil'
+  import netUtil from "@/service/util/netUtil"
   import userService from '@/service/userService'
   import wdcollectService from '@/service/wdcollectService'
   import interService from '@/service/interlocutionService'
   import followService from '@/service/followService'
   import messageService from '@/service/messageService'
+  import fileService from '@/service/fileService'
   import articleService from '@/service/articleService'
   import articleFileService from '@/service/article_fileService'
   import articleCommentService from '@/service/article_commentService'
+  import reportService from '@/service/reportService'
   import gallary from "@/components/Gallary"
-  const downloadUrl = "https://mobile.baidu.com/item?docid=25512436&f0=search_searchContent%400_appBaseNormal%400";
   export default {
     components:{
       gallary
@@ -159,6 +166,7 @@
         ifImgNull:true,
         timer:null,
         userId:localStorage.id,
+        focusState:false,
         focusColor:false,
         id:0,   //问题Id
         wenda:{},    //问题对象
@@ -167,6 +175,7 @@
         imgArr:[],  //问题图片
         items:[],
         answerFile:[],    //回答附件图片列表
+        bigImg:false,      //判断是否一张图
         wendaCount:0,     //回答数
         collectCount:0,   //问题收藏数
         collectIcon:false,   //监听收藏图标变化
@@ -179,10 +188,7 @@
           hasCollect:false,
           notCollect:false
         },
-        //textarea高度变化
-        onpropertychange:"this.style.height=this.scrollHeight + 'px'",
-        oninput:"this.style.height=this.scrollHeight + 'px'",
-        fabuColor:false,    //发布按钮颜色
+
         record:{
           content:'',
           author:1,
@@ -190,7 +196,6 @@
           publishtime:'',
           parentid:''
         },
-        record_file:[],   //问答附件数组
         page:1,     //回答列表页数
         // 答案发布人name-img
         wendaUser:{
@@ -204,13 +209,6 @@
         ifLoad: false, //是否加载
         ifLoading:false,
         tip:"正在加载",
-        shareShow:false,
-        shareDesc:{
-          href:'',
-          title:'',
-          description:'',
-          thumbs:[]
-        },
       }
     },
     activated() {
@@ -234,16 +232,17 @@
         },120);
       });
     },
-    mounted() {
-      window.history.pushState(null, null, document.URL);
-      window.addEventListener('popstate', this.onBrowserBack);
-    },
-    destroyed(){
-      window.removeEventListener("popstate", this.onBrowserBack);
-    },
+
     methods:{
       //页面初始化渲染
       init() {
+        if (!this.id) {
+          this.$vux.alert.show({
+            content: '获取出错，请返回！',
+          });
+          this.$Tool.goBack();
+          return;
+        }
         this.ifLoad = true;
         this.items = [];
         this.imgArr = this.wenda.images.split(',');
@@ -271,6 +270,20 @@
           }
         });
 
+        // 是否关注发布人
+        if(localStorage.getItem('token')) {
+          followService.testFollow(this.wenda.userid, (data)=>{
+            if(data && data.status == "success") {
+              if(data.result == 1) {
+                this.focusState = true;
+                this.focusColor = true;
+              }else{
+                this.focusState = false;
+                this.focusColor = false;
+              }
+            }
+          });
+        }
         // 获取回答列表
         this.page = 1;
         this.answer =[];
@@ -354,99 +367,40 @@
         });
         this.ifLoad = false;
       },
-      // 跳转下载页面
-      handleDownLoad(){
-        window.location.href = downloadUrl;
-      },
-      onBrowserBack(){
-        if(this.shareShow || this.reportShow){
-          this.shareShow = false;
-          this.reportShow = false;
-        }
-      },
-      // 分享问题
-      handleShare(){
-        this.shareShow= true;
-        let reg = /[^\u4e00-\u9fa5]+/g;
-        let tempDesc = this.wenda.description.replace(reg,"");
-        this.shareDesc = {
-          href:config.share + '/#/detail' + location.href.substring(location.href.indexOf('?')),
-          title: this.wenda.title,
-          description: tempDesc.substring(0,80),
-        }
-        if(this.imgArr.length){
-          this.shareDesc['thumbs'] = [this.fileRoot + this.imgArr[0]];
-        }
-        if(!this.shareDesc['thumbs']){
-          this.shareDesc['thumbs'] = require('@/assets/images/logo-icon.png');
-        }
+
+      handleCloseAnswer(id, index){
+        let thiz = this;
+        this.$vux.confirm.show({
+          content:"确定要删除么",
+          onConfirm() {
+            let data = articleService.deleteArticleById(id);
+            if(data && data.status == "success") {
+              thiz.answer.splice(index,1);
+              thiz.$vux.alert.show({
+                content:"删除成功",
+              })
+              thiz.wendaCount --;
+              if(thiz.wendaCount == 0){
+                thiz.questionBool.hasAnswer = false;
+                thiz.questionBool.notAnswer = true;
+                thiz.notAnswer = true;
+              }
+              setTimeout(()=>{
+                thiz.$vux.alert.hide();
+              },1000)
+            }else{
+              thiz.$vux.alert.show({
+                content:'删除失败，请重试！',
+              })
+            }
+          }
+        })
       },
 
       handleReport(){
         this.reportShow = true;
       },
-      //取消回答框
-      handleCancel(){
-        this.reportShow = false;
-        this.reportreasion = "";
-        this.answerObj.show = false;
-        this.record.content = "";
-        this.record_file = [];
-        this.answerObj.addShow = true;
-        },
 
-      // 发布回答
-      handlePublish(){
-        if(!this.$Tool.checkInput(this.record.content)) {
-          this.record.content = this.$Tool.replaceNo(this.record.content);
-          this.$vux.alert.show({
-            content:'内容含有非法字符，已为您删除，请确认'
-          });
-          return;
-        }
-
-        if(!this.record.content){
-          this.$vux.toast.text('回答不能为空', 'middle')
-          return;
-        }
-        this.record.author = Number(localStorage.id || 0);
-        let pid =this.wenda.id;
-        this.record.parentid = pid;
-        this.record.state = 3;
-        let data = articleService.publishArticle(this.record, this.record_file);
-        if(data && data.status == "success") {
-          this.$vux.alert.show({
-            content:'发布成功'
-          });
-          this.init();
-          this.record_file = [];
-          this.record.content ="";
-          this.answerObj.addShow=false;
-          this.answerObj.addShow = true;
-          this.wendaCount++;
-          if(this.wendaCount > 0) {
-            this.questionBool.hasAnswer = true;
-            this.questionBool.notAnswer = false;
-          }
-          setTimeout(()=>{
-            this.$vux.alert.hide();
-          },800);
-          this.answerObj.show = false;
-        }else{
-          this.$vux.alert.show({
-            content:'发布失败'
-          });
-        }
-
-      },
-      //监听文本框
-      handelInput(){
-        if(this.record.content.length >= 1){
-          this.fabuColor = true;
-        }else{
-          this.fabuColor = false;
-        }
-      },
       goAnswerDetail(wenda,item){
         if (!this.$store.state.isScolling) {
           this.$Tool.goPage({
@@ -459,27 +413,29 @@
           })
         }
       },
+      // 进入下载页
+      handleDownLoad(){
+        this.reportShow = false;
+        this.reportreasion = "";
+        this.$router.push({ path:'/download'})
+      },
 
     },
-    watch:{
-      shareShow:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
-      },
-      reportShow:{
-        handler(newVal, oldVal) {
-          if(newVal.Terms == true) {
-            window.history.pushState(null, null, document.URL);
-          }
-        },
-        deep: true
+    computed:{
+      isBlacklist(){
+        return function (item) {
+          return this.$store.state.blacklist.includes(item);
+        }
       },
     },
-
+    beforeRouteLeave(to, from , next){
+      if(this.reportShow == true){
+        this.reportShow = false;
+        next(false);
+      } else{
+        next()
+      }
+    }
   }
 </script>
 
@@ -487,6 +443,7 @@
   .mask{
     position: absolute;
     background: #fafafa;
+    z-index: 999;
   }
   .wendaList{
     position: relative;
@@ -517,6 +474,9 @@
         .user-focus{
           font-weight: 600;
         }
+        .default-color{
+          color:#999;
+        }
         .active-color{
           color: #d96363;
         }
@@ -534,28 +494,14 @@
       }
       .desc{
         position: relative;
+        margin-bottom: .15rem;
         .desc-text{
           width: 100%;
           line-height: .48rem;
           font-size: .34rem;
-          /*  overflow: hidden;
-            text-overflow:ellipsis;
-            display:-webkit-box;
-            -webkit-box-orient:vertical;
-            -webkit-line-clamp:1;*/
           letter-spacing: .02rem;
           color: #707070;
         }
-        /*.open{
-          position: absolute;
-          top: .08rem;
-          right: 0;
-          font-size: .34rem;
-          color: #406599;
-          .iconfont{
-            font-size: .28rem;
-          }
-          }*/
       }
       .wendaList-img{
         width: 100%;
@@ -574,6 +520,15 @@
             height: 100%;
             padding: .02rem;
             object-fit: cover;
+          }
+        }
+        .bigImg{
+          width: 100%;
+          height: 4rem;
+          img{
+            display: block;
+            width: 100%;
+            height: 100%;
           }
         }
       }
@@ -748,6 +703,131 @@
       }
       &:last-child{
         color: #d60139;
+      }
+    }
+  }
+  .popup-wrap{
+    .popup-header{
+      position: relative;
+      left: 0;
+      top: 0;
+      height: .95rem;
+      line-height: .95rem;
+      padding: 0 .3rem;
+      border-bottom: .02rem solid @borderColor;
+      div{
+        display: inline-block;
+        font-size: .3rem;
+        text-align: center;
+      }
+      .header-cancel,.header-fabu{
+        width: 1rem;
+      }
+      .header-fabu{
+        color: #c7c7c7;
+      }
+      .header-title{
+        width: calc(100% - 2.2rem);
+        letter-spacing: .02rem;
+        font-size: .32rem;
+        color: #e86256;
+      }
+    }
+    .popup-body{
+      width: 100%;
+      background-color: #fff;
+      height: calc(100vh - 2.27rem);
+      overflow: hidden;
+      overflow-y: auto;
+      padding: 0 .3rem;
+      textarea{
+        padding-top: .3rem;
+        min-height: 2.5rem;
+        display: block;
+        width: 100%;
+        font-size: .3rem;
+        resize: none;
+        overflow-y: hidden;
+        background-color: #fff;
+      }
+      .popup-img{
+        padding: .2rem 0;
+        .img{
+          position: relative;
+          margin-right: .12rem;
+          margin-bottom: .12rem;
+          display: inline-block;
+          width: 2.22rem;
+          height: 2.22rem;
+          &:nth-child(3n){
+            margin-right: 0;
+          }
+          img{
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: .02rem solid @borderColor;
+            filter: brightness(0.7);
+            object-fit: cover;
+          }
+          .iconfont{
+            position: absolute;
+            z-index: 6;
+            right: .09rem;
+            top: .09rem;
+            color: #fff;
+          }
+        }
+        .popup-addimg{
+          position: relative;
+          width: 2.22rem;
+          height: 2.22rem;
+          text-align: center;
+          background-color: #f4f5f6;
+          float: left;
+          label{
+            position:absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            line-height: 1.86rem;
+          }
+          .iconfont{
+            display: inline-block;
+            width: 1.2rem;
+            height: 1.2rem;
+            font-size: 1rem;
+            margin-top: .51rem;
+            // font-weight: 700;
+            color: #dcdcdc;
+          }
+        }
+      }
+    }
+    .popup-footer{
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: .88rem ;
+      line-height: .88rem;
+      padding: 0 .3rem;
+      border-top: .02rem solid @borderColor;
+      background-color: #f4f5f6;
+      .addImg{
+        position: relative;
+        label{
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+        }
+      }
+      .iconfont{
+        font-size: .5rem;
+        color: #444;
       }
     }
   }
