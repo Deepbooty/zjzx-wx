@@ -17,8 +17,7 @@
             class="user-focus fr"
             :class="focusColor ? 'default-color' : 'active-color'"
             v-if="userId != wenda.userid"
-            @click="handleDownLoad"
-            >
+          @click="handleDownLoad">
             {{focusState ? '已关注' : '关注'}}
           </div>
         </div>
@@ -36,7 +35,7 @@
           <span v-show="questionBool.notCollect">暂无人收藏</span>
 
           <div class="question-jubao fr" @click="handleReport">
-           <i class="iconfont icon-warning-circle"></i>
+            <i class="iconfont icon-warning-circle"></i>
             举报
           </div>
         </div>
@@ -64,13 +63,9 @@
         </div>
         <div class="footer clearfix">
           <div class="fl">
-
             <span>{{item.answerCommentNum}}评论</span>
-
             <span>{{item.publishtime}}</span>
           </div>
-          <!--  -->
-          <!-- v-if="ifDel" -->
           <div class="fr article-remove" @click="$emit('delete',[item.id,$event])" v-if="ifDel">
             <i class="iconfont icon-remove"></i>
           </div>
@@ -86,11 +81,11 @@
       </div>
     </div>
     <div class="wendaList-footer">
-      <div class="item"  @click="handleDownLoad">
+      <div class="item" @click="handleDownLoad">
         <i class="iconfont" :class="collectIcon ? 'icon-collected' : 'icon-not-collection'"></i>
         <span>{{collectState?'已收藏':'收藏'}}</span>
       </div>
-      <div class="item"  @click="handleDownLoad">
+      <div class="item" @click="handleDownLoad">
         <i class="iconfont icon-comment"></i>
         <span>回答</span>
       </div>
@@ -106,7 +101,7 @@
             <radio :selected-label-style="{color: '#FF9900'}" fill-mode :options="reportList" v-model="reportreasion">
             </radio>
           </group>
-          <div class="report-footer"  @click="handleDownLoad">
+          <div class="report-footer" @click="handleDownLoad">
             确定
           </div>
         </div>
@@ -117,22 +112,14 @@
 <script>
   import config from '@/lib/config/config'
   import listUtil from '@/service/util/listUtil'
-  import netUtil from "@/service/util/netUtil"
   import userService from '@/service/userService'
   import wdcollectService from '@/service/wdcollectService'
   import interService from '@/service/interlocutionService'
   import followService from '@/service/followService'
-  import messageService from '@/service/messageService'
-  import fileService from '@/service/fileService'
   import articleService from '@/service/articleService'
   import articleFileService from '@/service/article_fileService'
   import articleCommentService from '@/service/article_commentService'
-  import reportService from '@/service/reportService'
-  import gallary from "@/components/Gallary"
   export default {
-    components:{
-      gallary
-    },
     props:{
       whi:{
         type:Number,
@@ -168,7 +155,7 @@
         userId:localStorage.id,
         focusState:false,
         focusColor:false,
-        id:0,   //问题Id
+        id:null,   //问题Id
         wenda:{},    //问题对象
         answer:[],   //问题回答对象
         fileRoot:config.fileRoot + '/',   //服务路径
@@ -188,7 +175,7 @@
           hasCollect:false,
           notCollect:false
         },
-
+        fabuColor:false,    //发布按钮颜色
         record:{
           content:'',
           author:1,
@@ -208,17 +195,13 @@
         ifNet:false,
         ifLoad: false, //是否加载
         ifLoading:false,
-        tip:"正在加载",
+        tip:"正在加载"
       }
     },
     activated() {
       this.$nextTick(()=>{
         this.id = this.$route.query.id;
-        this.wenda = JSON.parse(this.$route.query.item);
         this.ifLoad = true;
-        if(this.timer){
-          clearTimeout(this.timer);
-        }
         if(this.timer){
           clearTimeout(this.timer);
         }
@@ -232,7 +215,6 @@
         },120);
       });
     },
-
     methods:{
       //页面初始化渲染
       init() {
@@ -244,6 +226,11 @@
           return;
         }
         this.ifLoad = true;
+        // 获取问题详情信息
+        let questionDetail = interService.getQuestionById(this.id);
+        if(questionDetail && questionDetail.status == "success"){
+          this.wenda = questionDetail.record;
+        }
         this.items = [];
         this.imgArr = this.wenda.images.split(',');
         for(let i =0; i<this.imgArr.length;i++){
@@ -295,7 +282,7 @@
           }
           // 循环回答列表
           listUtil.asyncSetListPropty(answerData.recordPage.list,(item)=>{
-
+            console.log(item)
             // 获取发布回答时间
             item.publishtime = this.$Tool.publishTimeFormat(item.publishtime);
             // 获取发布回答用户信息
@@ -367,7 +354,12 @@
         });
         this.ifLoad = false;
       },
-
+      handleDownLoad(){
+        this.reportShow = false;
+        this.reportList = [];
+        this.reportreasion = "";
+        this.$router.push({ path:'/download'})
+      },
       handleCloseAnswer(id, index){
         let thiz = this;
         this.$vux.confirm.show({
@@ -401,23 +393,18 @@
         this.reportShow = true;
       },
 
+
       goAnswerDetail(wenda,item){
         if (!this.$store.state.isScolling) {
           this.$Tool.goPage({
             name:'wendaDetail',
             query:{
-              wenda:JSON.stringify(wenda),
-              item:JSON.stringify(item),
+              qid:wenda.id,
+              aid:item.id,
               detailType:this.detailType
             },
           })
         }
-      },
-      // 进入下载页
-      handleDownLoad(){
-        this.reportShow = false;
-        this.reportreasion = "";
-        this.$router.push({ path:'/download'})
       },
 
     },
@@ -429,13 +416,14 @@
       },
     },
     beforeRouteLeave(to, from , next){
-      if(this.reportShow == true){
+      if( this.reportShow == true){
         this.reportShow = false;
         next(false);
       } else{
         next()
       }
-    }
+    },
+
   }
 </script>
 
@@ -443,7 +431,6 @@
   .mask{
     position: absolute;
     background: #fafafa;
-    z-index: 999;
   }
   .wendaList{
     position: relative;
@@ -706,6 +693,9 @@
       }
     }
   }
+  .status-bar{
+    background: @statusBarBg;
+  }
   .popup-wrap{
     .popup-header{
       position: relative;
@@ -725,6 +715,9 @@
       }
       .header-fabu{
         color: #c7c7c7;
+      }
+      .fabuColor{
+        color:#2a90d7;
       }
       .header-title{
         width: calc(100% - 2.2rem);

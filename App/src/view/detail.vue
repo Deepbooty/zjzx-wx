@@ -32,7 +32,6 @@
             </div>
           </router-link>
           <button type="button" class="focus bfc-p fr" v-if="userId != article.author" @click="handleDownLoad">{{focusState?'已关注':'关注'}}</button>
-          <button @click="handleWx">微信</button>
         </div>
         <template v-if="isHide">
           <div class="content hideContent">
@@ -152,9 +151,9 @@
           <div class="item" @click="handleDownLoad">
             <i class="iconfont" :class="collectIcon ? 'icon-collected' : 'icon-not-collection'"></i>
           </div>
-          <div class="item"  @click="handleShare">
+        <!--  <div class="item"  @click="handleShare">
             <i class="iconfont icon-share"></i>
-          </div>
+          </div>-->
         </div>
       </div>
     </div>
@@ -181,10 +180,9 @@
       </popup>
     </div>
     <!-- 分享 -->
-    <share :content="shareDesc" v-model="shareShow"></share>
+    <!--<share :content="shareDesc" v-model="shareShow"></share>-->
   </div>
 </template>
-
 <script>
   import config from '@/lib/config/config'
   import like from '@/components/common/like'
@@ -325,13 +323,13 @@
           title:"",
           desc:"",
           link:"",
-          imgUrl:[]
+          imgUrl:[],
+          type:"",
+          dataUrl:""
         }
       }
     },
     activated(){
-
-
       if(this.article.type == 2) {
         this.isHide = false;
       }else{
@@ -349,6 +347,7 @@
         this.likeStatus = false;
       }
     },
+
     methods:{
 
       init(){
@@ -500,21 +499,21 @@
           })
         }
         this.ifLoad = false;
-      },
-      handleWx(){
+
+        // 分享
         // 分享内容对象
         let reg = /[^\u4e00-\u9fa5]+/g;
         let tempContent = this.article.content.replace(reg,"");
         let url = location.href;
         if(location.hash.length){
           url = url.substr(0, url.indexOf(location.hash));
-          console.log(url)
         }
+        let link = `http://wx.zjzx.xyz:8381/index.html#/detail?id=${encodeURIComponent(this.article.id)}&detailType=false`;
 
         this.shareObj = {
           title: this.article.title,
           desc: tempContent.substring(0, 80),
-          href:url
+          link: link
         };
         if(this.article.type == 3) {
           let temp = this.$Tool.extractImg(this.article.content, 1);
@@ -527,8 +526,9 @@
         if (!this.shareObj['imgUrl']) {
           this.shareObj['imgUrl'] = require('@/assets/images/logo-icon.png');
         }
-        wxUtil.initShareFriend(url,this.shareObj);
+        wxUtil.initShare(url,this.shareObj,()=>{});
       },
+
       // 爱心提示展开收起
       handleToggle(){
         this.isActive = !this.isActive;
@@ -603,7 +603,7 @@
       },
 
       // 分享
-      handleShare(){
+  /*    handleShare(){
         this.shareShow= true;
         //分享内容对象
         let reg = /[^\u4e00-\u9fa5]+/g;
@@ -625,7 +625,7 @@
         if (!this.shareDesc['thumbs']) {
           this.shareDesc['thumbs'] = require('@/assets/images/logo-icon.png');
         }
-      },
+      },*/
       //二级三级回复
 
       // 点击消息滚动
@@ -731,6 +731,7 @@
         this.$refs.videoPlayer.player.pause();
       },
     },
+
     computed:{
       // 判断是否黑名单
       isBlacklist(){
@@ -759,7 +760,9 @@
           this.pageNumComment = 1;
           this.init();
           // this.ifLoad = false;
-        },delay)
+
+        },delay);
+
         //注：延迟时长必须在动画大于切换动画（300）
       },
       $route(to,from) {

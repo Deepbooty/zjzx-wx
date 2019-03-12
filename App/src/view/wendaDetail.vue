@@ -10,7 +10,7 @@
     <div class="answer-detail" @scroll="loadScroll">
       <div class="answer-wrap">
         <div class="answer-header">
-          <h1 class="question-title">{{wenda.title}}</h1>
+          <h1 class="question-title">{{qtitle}}</h1>
           <div class="answer-count">
             <span>{{answerCount}}条回答 <i class="iconfont icon-arrow-right"></i></span>
           </div>
@@ -136,8 +136,9 @@
   import interService from '@/service/interlocutionService'
   import userService from '@/service/userService'
   import followService from '@/service/followService'
-  import messageService from '@/service/messageService'
+  import wxUtil from '@/service/util/wxUtil'
   import articleFileService from '@/service/article_fileService'
+  import articleService from '@/service/articleService'
   import articleCommentService from '@/service/article_commentService'
   import praiseService from '@/service/praiseService'
   import articleCollectService from '@/service/articleCollectService'
@@ -149,13 +150,16 @@
     },
     data(){
       return{
-        id:0, //回答id
+        aid:null, //回答id
+        qid:null, //问题
+        detailType: 0,//视图类型
         userId:localStorage.id,    //当前登录用户
         loadLock: false,  //加载锁
         fileRoot:config.fileRoot + '/',   //服务路径
         wenda:{}, //问题的对象
         answer:{},  //回答对象
         /* 回答人的姓名-头像*/
+        qtitle:"",  //问题标题
         answerUser:{
           username:'',
           imageurl:''
@@ -204,10 +208,13 @@
         curLike:Number,   //点赞数字变化
         badgeShow: false, //伪评论框消息是否显示badge
         /*回答分享对象*/
-        shareDesc:{
-          href:'',
-          title:'',
-          content:''
+        shareObj:{
+          title:"",
+          desc:"",
+          link:"",
+          imgUrl:[],
+          type:"",
+          dataUrl:""
         },
         shareShow:false,  //分享框是否显示
         replyList: [],  //回复列表
@@ -219,10 +226,10 @@
       }
     },
     activated(){
-      $(".answer-detail").scrollTop(this.scrollTop)
-      this.wenda = JSON.parse(this.$route.query.wenda);
-      this.answer = JSON.parse(this.$route.query.item);
-      this.id = this.answer.id;
+      $(".answer-detail").scrollTop(this.scrollTop);
+      this.qid = this.$route.query.qid;
+      this.aid = this.$route.query.aid;
+      this.detailType = this.$route.query.detailType || 0;
       if(!localStorage.id || !localStorage.token){
         this.answerFocusState=false;
         this.collectIcon = false;
@@ -234,14 +241,13 @@
 
     },
     watch:{
-      id(){
+      aid(){
         this.proFail1 = false;
         this.ifLoad = true;
         $(".answer-detail").scrollTop(0)
         setTimeout(()=>{
           this.commentPage = 1
           this.init();
-          // this.ifLoad = false;
         },delay)
       }
     },
@@ -256,27 +262,38 @@
     methods:{
       // 页面初始渲染
       init(){
-        if (!this.id) {
+        if(!this.aid){
           this.$vux.alert.show({
             content: '获取出错，请返回！',
           });
           this.$Tool.goBack();
           return;
         }
-        // this.ifLoad = true;
+        // 获取问题标题
+        let questionData = interService.getQuestionById(this.qid);
+        if(questionData && questionData.status == "success"){
+          this.qtitle = questionData.record.title;
+        }
+
         // 获取问题回答数量
-        interService.getAnswerCount(this.wenda.id, (data) =>{
-          if(data && data.status == "success") {
+        interService.getAnswerCount(this.qid, (data) =>{
+          if(data && data.status == "success"){
             this.answerCount = this.$Tool.numConvertText(data.count);
           }
         });
 
-        // 获取回答人的信息
+        // 获取回答详情
+        let answerData = articleService.getArticleById(this.aid);
+        if(answerData && answerData.status == "success"){
+          this.answer = answerData.record;
+        }
+        // 获取回答人信息
         let answerInfo = userService.getUserById(this.answer.author);
-        if(answerInfo && answerInfo.status == "success") {
+        if(answerInfo && answerInfo.status == "success"){
           this.answerUser = answerInfo.result.user;
         }
-
+        // 获取发布回答时间
+        this.publishtime = this.$Tool.publishTimeFormat(this.answer.publishtime);
         // 获取关注的状态
         if(localStorage.getItem('token')) {
           followService.testFollow(this.answer.author, (data)=>{
@@ -290,9 +307,8 @@
           })
         }
         // 获取回答内容中图片
-        let answerSrcData = articleFileService.getFileByArticle(this.answer.id);
+        let answerSrcData = articleFileService.getFileByArticle(this.aid);
         if(answerSrcData && answerSrcData.status == "success") {
-          // this.answerFile = answerSrcData.result.filelist;
           let arr = answerSrcData.result.filelist;
           this.items = [];
           for(let i =0; i < arr.length; i++){
@@ -304,27 +320,17 @@
             };
             this.items.push(obj);
           }
+
         }
 
-        // 获取发布回答时间
-        this.publishtime = this.$Tool.publishTimeFormat(this.answer.publishtime);
-
         // 获取评论回答总数
-        articleCommentService.getArticleCommentCount(this.answer.id, (data)=>{
+        articleCommentService.getArticleCommentCount(this.aid, (data)=>{
           if(data && data.status == "success") {
             this.answerCommentNum = this.$Tool.numConvertText(data.result.count);
-            if(this.answerCommentNum == 0){
-              this.ifComment = false;
-              this.badgeShow = false;
-            }else{
-              this.ifComment = true;
-              this.badgeShow = true;
-            }
           }
         });
-
         // 获取回答的收藏状态
-        articleCollectService.testCollect(this.answer.id, (data)=>{
+        articleCollectService.testCollect(this.aid, (data)=>{
           if(data && data.status == "success") {
             if(data.result == 1) {
               this.collectIcon = true;
@@ -334,7 +340,7 @@
           }
         });
         // 获取回答点赞状态
-        praiseService.testPraise(this.answer.id, 1, (data)=>{
+        praiseService.testPraise(this.aid, 1, (data)=>{
           if(data && data.status == "success") {
             if (data.result == 1){
               this.zanIcon = true;
@@ -344,21 +350,46 @@
           }
         });
         // 获取回答点赞总数
-        praiseService.getPraiseCount(this.answer.id,1,(data)=>{
+        praiseService.getPraiseCount(this.aid,1,(data)=>{
           if(data && data.status == "success") {
             this.answerZanNum = this.$Tool.numConvertText(data.result.count);
-            if(data.count <= 0) {
-              this.answerZanBool.notZan = true;
-              this.answerZanBool.hasZan = false;
-            }else{
-              this.answerZanBool.notZan = false;
-              this.answerZanBool.hasZan = true;
-            }
           }
         });
         //评论滚动近底部，自动加载 一屏1080
         this.loadComment();
         this.ifLoad = false;
+
+        // 微信分享
+        let reg = /[^\u4e00-\u9fa5]+/g;
+        let tempContent = this.answer.content.replace(reg,"");
+        let url = location.href;
+        if(location.hash.length){
+          url = url.substr(0, url.indexOf(location.hash));
+        }
+        let link = `http://wx.zjzx.xyz:8381/index.html#/wendaDetail?qid=${encodeURIComponent(this.qid)}&aid=${encodeURIComponent(this.aid)}&detailType=`;
+        this.shareObj = {
+          title: this.qtitle,
+          desc: tempContent.substring(0 ,80),
+          link: link,
+          imgUrl: require('@/assets/images/logo-icon.png')
+        };
+        // console.log(this.items[0]['src']);
+     /*   console.log(this.items);
+        if(this.items.length == 0){
+          this.shareObj['imgUrl'] = require('@/assets/images/logo-icon.png');
+          console.log(this.shareObj['imgUrl'])
+        }else{
+          this.shareObj['imgUrl'] = this.items[0]['src'];
+          console.log(this.shareObj['imgUrl'])
+        }
+
+        if(this.items[0].src == "undefined"){
+          return;
+        }*/
+
+
+        wxUtil.initShare(url,this.shareObj,()=>{});
+
       },
       // 打开评论框
       handleOpenInput(){
@@ -451,8 +482,8 @@
         let reg = /[^\u4e00-\u9fa5]+/g;
         let tempContent = this.answer.content.replace(reg,"");
         this.shareDesc = {
-          href:config.share + '/#/detail' + location.href.substring(location.href.indexOf('?')),
-          title: this.answer.title,
+          href:config.share + '/#/wendaDetail' + location.href.substring(location.href.indexOf('?')),
+          title: this.qtitle,
           content: tempContent.substring(0,80)
         };
         let temp = this.$Tool.extractImg(this.answer.content,1);
@@ -460,7 +491,9 @@
         if(this.items.length) {
           this.shareDesc['thumbs'] = [this.fileRoot + this.items[0]['url']];
         }
-
+        if (!this.shareDesc['thumbs']) {
+          this.shareDesc['thumbs'] = require('@/assets/images/logo-icon.png');
+        }
       },
       goPerson(userId){
         this.$Tool.goPage({name:'publishedArticle',query:{userId}});

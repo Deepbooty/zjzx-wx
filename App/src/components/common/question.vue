@@ -109,7 +109,8 @@
       //进入问题列表页
       handlewendaList(item){
         if(!this.$store.state.isScolling) {
-          this.$Tool.goPage({name:'wendaList', query:{id:this.wenda.id, item:JSON.stringify(item)}});
+          // this.$Tool.goPage({name:'wendaList', query:{id:this.wenda.id, item:JSON.stringify(item)}})
+          this.$Tool.goPage({name:'wendaList',query:{id:item.id}});
         }
       }
     },

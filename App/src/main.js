@@ -21,6 +21,9 @@ import 'swiper/dist/css/swiper.css'
 import Tool from './assets/js/methods'
 Vue.use(Tool);
 
+import wxUtil from './service/util/wxUtil'
+Vue.use(wxUtil);
+
 // 预览大图
 import vuePicturePreview from 'babel-loader!vue-picture-preview'
 Vue.use(vuePicturePreview)
@@ -90,6 +93,7 @@ FastClick.attach(document.body);
 
 Vue.config.productionTip = false;
 /* eslint-disable no-new */
+
 new Vue({
   router,
   store,
@@ -98,6 +102,7 @@ new Vue({
     window.delay = 400;// 延迟时间必须大于路由切换动画时间
     // this.initSystem();
   },
+
 /*  methods: {
     //判断系统
     initSystem(){
@@ -114,3 +119,4 @@ new Vue({
   },*/
   render: h => h(App),
 }).$mount('#app');
+

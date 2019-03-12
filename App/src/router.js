@@ -76,6 +76,13 @@ export default new VueRouter({
         require(['@/view/wendaList.vue'],resolve)
       }
     },
+    {
+      path:'/redirect',
+      name:'redirect',
+      component:(resolve)=>{
+        require(['@/view/redirect.vue'],resolve)
+      }
+    },
     // 问答详情页面
     {
       path:'/wendaDetail',
@@ -85,6 +92,13 @@ export default new VueRouter({
       }
     },
     //搜索页面
+    {
+      path: '/search',
+      name: 'search',
+      component: (resolve)=>{
+        require(['@/view/search.vue'],resolve)
+      }
+    },
     {
       path: '/search',
       name: 'search',

@@ -1,8 +1,6 @@
 <template>
     <div>
-      <top>
-        <template slot="title">直击真相APP下载</template>
-      </top>
+
       <!--
       <div class="download-wrap">
         <div class="logo">
@@ -17,7 +15,7 @@
 <script>
     export default {
         name: "download",
-        activated(){
+       /* activated(){
           this.$nextTick(()=>{
             let ua = navigator.userAgent.toLowerCase();
             let isAndroid = ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1;
@@ -33,7 +31,7 @@
               return (/micromessenger/.test(ua)) ? true : false;
             }
           });
-        }
+        }*/
     }
 </script>
 
