@@ -571,7 +571,7 @@
       handleDownLoad(){
         this.popList.show = false;
         this.popList.desc = "";
-        this.$router.push({ path:'/download'})
+         window.location.href="download.html"
       },
       // 删除评论
       handleDelete(itemid, index, type){

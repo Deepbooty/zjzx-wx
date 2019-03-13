@@ -358,7 +358,7 @@
         this.reportShow = false;
         this.reportList = [];
         this.reportreasion = "";
-        this.$router.push({ path:'/download'})
+         window.location.href="download.html"
       },
       handleCloseAnswer(id, index){
         let thiz = this;

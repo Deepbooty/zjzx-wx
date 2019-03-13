@@ -41,7 +41,7 @@
     },
     methods:{
       handleDownLoad(){
-        this.$router.push({ path:'/download'})
+         window.location.href="download.html"
       }
     }
 

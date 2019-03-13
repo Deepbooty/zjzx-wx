@@ -405,7 +405,7 @@
       },
       // 进入下载页
       handleDownLoad(){
-        this.$router.push({ path:'/download'});
+         window.location.href="download.html";
       },
       handleSendDownLoad(){
         if(!this.answerPopObj.desc){
@@ -413,7 +413,7 @@
         }else{
           this.answerPopObj.show = false;
           this.answerPopObj.desc = "";
-          this.$router.push({ path:'/download'})
+           window.location.href="download.html"
         }
       },
 

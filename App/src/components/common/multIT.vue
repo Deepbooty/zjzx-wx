@@ -49,7 +49,7 @@
       <!--<span>{{commentNum}}评论</span>-->
       <span class="publish-time">{{publishtime}}</span>
       <i class="iconfont icon-remove fr article-remove" @click="$emit('delete',[article.id,whi,$event])" v-if="ifDel"></i>
-      <i class="iconfont icon-remove fr article-remove" @click.stop="showRemove()" v-if="ifRemove"></i>
+      <!--<i class="iconfont icon-remove fr article-remove" @click.stop="showRemove()" v-if="ifRemove"></i>-->
     </div>
   </div>
 </template>
@@ -161,9 +161,9 @@
           !this.ifSingle ? this.$Tool.goPage({ name:'detail',query:{id:this.article.id,detailType:this.detailType}}) : this.$Tool.goPage({ name:'detail',query:{id:this.article.id,detailType:this.detailType},replace:'true'})
         }
       },
-      showRemove(){
+     /* showRemove(){
         this.$store.state.reportArticle = this.article;
-      }
+      }*/
     }
   }
 </script>

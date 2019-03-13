@@ -7,7 +7,7 @@
     </transition>
     <lg-preview></lg-preview>
     <!-- 举报框 -->
-    <div v-transfer-dom style="z-index: 988;">
+<!--    <div v-transfer-dom style="z-index: 988;">
       <popup v-model="ifReport" style="z-index: 999;">
         <div class="report-wrap">
           <div class="report-header">
@@ -22,7 +22,7 @@
           </div>
         </div>
       </popup>
-    </div>
+    </div>-->
   </div>
 </template>
 
@@ -170,14 +170,14 @@ export default {
 
     }
   },
-  methods:{
+/*  methods:{
     handleDownLoad(){
       this.ifReport = false;
       this.reportReasion = "";
 
-      this.$router.push({ path:'/download'})
+       window.location.href="download.html"
     },
-  },
+  },*/
   watch: {
   	//监听路由
   	$route(to,from) {

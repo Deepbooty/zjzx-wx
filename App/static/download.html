@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <title>直击真相APP</title>
+  <style>
+    html,body{
+      margin: 0;
+      padding: 0;
+    }
+    .download-wrap {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      overflow-y: auto;
+      background: url("download_bg.png") 0 0 no-repeat;
+      background-size: 100% 100%;
+    }
+    .download-mask{
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 9;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(1,17,34,.6);
+    }
+    .download-tip{
+      display: inline-block;
+      position: absolute;
+      width: 75%;
+      right: .06rem;
+    }
+    .download-tip img{
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<div class="download-wrap">
+  <div class="download-mask" onclick="handleClose()">
+    <div class="download-tip">
+      <img src="download_tip.png">
+    </div>
+  </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+  $(function () {
+    if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
+      window.location.href = "https://itunes.apple.com/cn/app/%E7%9B%B4%E5%87%BB%E7%9C%9F%E7%9B%B8/id1450056517?mt=8";
+      return;
+    }
+    if (isWeixin()){
+        $('.download-mask').css('display', "block");
+        return;
+    }
+    window.location.href = "https://wap.pp.cn/app_z5q5zyZIcxe/";
+  });
+  function isWeixin() {
+    let ua = window.navigator.userAgent.toLowerCase();
+    //通过正则表达式匹配ua中是否含有MicroMessenger字符串
+    if(ua.match(/MicroMessenger/i) == 'micromessenger'){
+      return true;
+    }else{
+      return false;
+    }
+  }
+  function handleClose() {
+    $('.download-mask').css('display','none');
+  }
+
+
+</script>
+</body>
+</html>

@@ -36,15 +36,16 @@
         <div class="download-logo fl">
           <img src="@/assets/images/bar-logo.png" alt="">
         </div>
-        <router-link to="/download" class="download-btn fr" tag="div">
-          打开APP
-        </router-link>
+        <div class="download-btn fr" @click="toDownload">
+           打开APP
+        </div>
 
       </div>
     </div>
   </div>
 </template>
 <script>
+
   export default{
     data(){
       return{
@@ -56,6 +57,11 @@
         return this.$store.state.newMes || this.$store.state.newVersion;
       }
     },
+    methods:{
+      toDownload(){
+        window.location.href="download.html"
+      }
+    },
     activated(){
       if(!localStorage.id){
         this.badgeShow = false;
@@ -63,6 +69,7 @@
         this.badgeShow = true;
       }
     }
+
 
   }
 </script>
@@ -116,7 +123,7 @@
       .download-logo{
         width: 46%;
         position: relative;
-        top: 0rem;
+        top: 0;
         img{
           display: block;
           width: 100%;
@@ -125,9 +132,7 @@
       }
       .download-btn{
         width: 1.8rem;
-        height: .6rem;
-        line-height: .6rem;
-        margin-top: .045rem;
+        padding: .14rem 0;
         font-size: .28rem;
         color: #fff;
         text-align: center;

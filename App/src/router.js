@@ -52,14 +52,6 @@ export default new VueRouter({
         },
       ]
     },
-    // 下载APP页面
-    {
-      path: '/download',
-      name: 'download',
-      component: (resolve)=>{
-        require(['@/view/download.vue'],resolve)
-      },
-    },
     //新闻详情页面(浏览者视图)
     {
       path: '/detail',
