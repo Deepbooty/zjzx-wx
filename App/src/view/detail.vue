@@ -151,9 +151,9 @@
           <div class="item" @click="handleDownLoad">
             <i class="iconfont" :class="collectIcon ? 'icon-collected' : 'icon-not-collection'"></i>
           </div>
-        <!--  <div class="item"  @click="handleShare">
-            <i class="iconfont icon-share"></i>
-          </div>-->
+          <!--  <div class="item"  @click="handleShare">
+              <i class="iconfont icon-share"></i>
+            </div>-->
         </div>
       </div>
     </div>
@@ -411,36 +411,37 @@
             }
           });
         }
-        // 文章附件 图片
-        if (this.article.type != 3) {
-          articleFileService.getFileByArticle(this.article.id,(data)=>{
-            if (data && data.status == "success") {
-              if (this.article.type == 1) {
-                let arr = data.result.filelist;
-                this.items = [];
-                for(let i = 0; i < arr.length; i++) {
-                  let obj = {
-                    src:this.fileRoot + arr[i].url,
-                    thumbnail:this.fileRoot + arr[i].url,
-                    w: 600,
-                    h: 420,
-                  };
-                  this.items.push(obj);
-                }
-              }else if(this.article.type == 2){
-                this.isHide = false;
-                let temp = data.result.filelist[0];
-                if (temp) {
-                  this.playerOptions.sources[0].src = this.fileRoot + temp.url;
-                  this.playerOptions.poster = this.fileRoot + temp.thumbnail;
-                }else{
-                  this.playerOptions.sources[0].src = '';
-                  this.playerOptions.poster = '';
-                }
-              }
+
+
+        let fileData = articleFileService.getFileByArticle(this.article.id);
+        if (fileData && fileData.status == "success") {
+          if (this.article.type == 1) {
+            let arr = fileData.result.filelist;
+            let items = [];
+            for(let i = 0; i < arr.length; i++) {
+              let obj = {
+                src:this.fileRoot + arr[i].url,
+                thumbnail:this.fileRoot + arr[i].url,
+                w: 600,
+                h: 420,
+              };
+              items.push(obj);
+              this.items = items;
             }
-          });
+
+          }else if(this.article.type == 2){
+            this.isHide = false;
+            let temp = fileData.result.filelist[0];
+            if (temp) {
+              this.playerOptions.sources[0].src = this.fileRoot + temp.url;
+              this.playerOptions.poster = this.fileRoot + temp.thumbnail;
+            }else{
+              this.playerOptions.sources[0].src = '';
+              this.playerOptions.poster = '';
+            }
+          }
         }
+
         //获取文章点赞量
         praiseService.getPraiseCount(this.id,1,(data)=>{
           if (data && data.status == "success") {
@@ -504,28 +505,29 @@
         // 分享内容对象
         let reg = /[^\u4e00-\u9fa5]+/g;
         let tempContent = this.article.content.replace(reg,"");
-        let url = location.href;
-        if(location.hash.length){
+        let url = window.location.href;
+        if(window.location.hash.length){
           url = url.substr(0, url.indexOf(location.hash));
         }
-        let link = `http://wx.zjzx.xyz:8381/index.html#/detail?id=${encodeURIComponent(this.article.id)}&detailType=false`;
-
+        let link = `http://wx.zjzx.xyz:8381/index.html#/detail?id=${encodeURI(this.article.id)}&detailType=false`;
         this.shareObj = {
           title: this.article.title,
           desc: tempContent.substring(0, 80),
-          link: link
+          link:link
         };
-        if(this.article.type == 3) {
-          let temp = this.$Tool.extractImg(this.article.content, 1);
-          this.shareObj['imgUrl'] = temp[0];
-        }else if(this.ArticleFile.length) {
-          this.shareObj['imgUrl'] = [this.fileRoot + this.ArticleFile[0]['url']];
+
+        if(this.article.type == 1){
+          this.shareObj.imgUrl = this.items[0].src;
+        }else if(this.article.type == 2){
+          this.shareObj.imgUrl = this.playerOptions.poster;
         }else{
-          this.shareObj['imgUrl'] = [this.fileRoot + this.playerOptions.poster];
+          this.shareObj.imgUrl = this.$Tool.extractImg(this.article.content,1)[0];
         }
-        if (!this.shareObj['imgUrl']) {
-          this.shareObj['imgUrl'] = require('@/assets/images/logo-icon.png');
+        if(!this.shareObj.imgUrl){
+          this.shareObj.imgUrl = "http://www.zjzx.xyz/img/index-logo.481a2ae3.png";
         }
+
+
         wxUtil.initShare(url,this.shareObj,()=>{});
       },
 
@@ -571,7 +573,7 @@
       handleDownLoad(){
         this.popList.show = false;
         this.popList.desc = "";
-         window.location.href="download.html"
+        window.location.href="download.html"
       },
       // 删除评论
       handleDelete(itemid, index, type){
@@ -603,29 +605,29 @@
       },
 
       // 分享
-  /*    handleShare(){
-        this.shareShow= true;
-        //分享内容对象
-        let reg = /[^\u4e00-\u9fa5]+/g;
-        let tempContent = this.article.content.replace(reg,"");
-        this.shareDesc = {
-          href:config.share + '/#/detail' + location.href.substring(location.href.indexOf('?')),
-          title: this.article.title,
-          content: tempContent.substring(0,80)
-        };
-        console.log(this.shareDesc)
-        if (this.article.type == 3) {
-          let temp = this.$Tool.extractImg(this.article.content,1);
-          this.shareDesc['thumbs'] = temp[0];
-        }else if(this.ArticleFile.length) {
-          this.shareDesc['thumbs'] = [this.fileRoot + this.ArticleFile[0]['url']];
-        }else{
-          this.shareDesc['thumbs'] = [this.fileRoot + this.playerOptions.poster];
-        }
-        if (!this.shareDesc['thumbs']) {
-          this.shareDesc['thumbs'] = require('@/assets/images/logo-icon.png');
-        }
-      },*/
+      /*    handleShare(){
+            this.shareShow= true;
+            //分享内容对象
+            let reg = /[^\u4e00-\u9fa5]+/g;
+            let tempContent = this.article.content.replace(reg,"");
+            this.shareDesc = {
+              href:config.share + '/#/detail' + location.href.substring(location.href.indexOf('?')),
+              title: this.article.title,
+              content: tempContent.substring(0,80)
+            };
+            console.log(this.shareDesc)
+            if (this.article.type == 3) {
+              let temp = this.$Tool.extractImg(this.article.content,1);
+              this.shareDesc['thumbs'] = temp[0];
+            }else if(this.ArticleFile.length) {
+              this.shareDesc['thumbs'] = [this.fileRoot + this.ArticleFile[0]['url']];
+            }else{
+              this.shareDesc['thumbs'] = [this.fileRoot + this.playerOptions.poster];
+            }
+            if (!this.shareDesc['thumbs']) {
+              this.shareDesc['thumbs'] = require('@/assets/images/logo-icon.png');
+            }
+          },*/
       //二级三级回复
 
       // 点击消息滚动

@@ -370,9 +370,10 @@
         this.shareObj = {
           title: this.qtitle,
           desc: tempContent.substring(0 ,80),
-          link: link,
-          imgUrl: require('@/assets/images/logo-icon.png')
+          link: link
         };
+        this.shareObj['imgUrl'] = require('@/assets/images/logo-icon.png');
+
         // console.log(this.items[0]['src']);
      /*   console.log(this.items);
         if(this.items.length == 0){
@@ -382,6 +383,7 @@
           this.shareObj['imgUrl'] = this.items[0]['src'];
           console.log(this.shareObj['imgUrl'])
         }
+
 
         if(this.items[0].src == "undefined"){
           return;
