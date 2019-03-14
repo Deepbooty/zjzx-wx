@@ -362,34 +362,35 @@
         // 微信分享
         let reg = /[^\u4e00-\u9fa5]+/g;
         let tempContent = this.answer.content.replace(reg,"");
-        let url = location.href;
-        if(location.hash.length){
+        let u = navigator.userAgent, app = navigator.appVersion;
+        let isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+        let isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+        let url;
+        url = window.location.href;
+        if(window.location.hash.length){
           url = url.substr(0, url.indexOf(location.hash));
         }
-        let link = `http://wx.zjzx.xyz:8381/index.html#/wendaDetail?qid=${encodeURIComponent(this.qid)}&aid=${encodeURIComponent(this.aid)}&detailType=`;
+        if(isIOS){
+          if(location.href.includes('qid')){
+            let qid = this.$route.query.qid;
+            let aid = this.$route.query.aid;
+            url = `${location.origin}/index.html#/wendaDetail?qid=${encodeURIComponent(qid)}&aid=${encodeURIComponent(aid)}&detailType=`;
+          }
+          window.location.href = url;
+        }
+        //let link = `http://wx.zjzx.xyz:8381/index.html#/wendaDetail?qid=${encodeURIComponent(this.qid)}&aid=${encodeURIComponent(this.aid)}&detailType=`;
         this.shareObj = {
           title: this.qtitle,
           desc: tempContent.substring(0 ,80),
-          link: link
+          link: url
         };
-        this.shareObj['imgUrl'] = require('@/assets/images/logo-icon.png');
 
-        // console.log(this.items[0]['src']);
-     /*   console.log(this.items);
-        if(this.items.length == 0){
-          this.shareObj['imgUrl'] = require('@/assets/images/logo-icon.png');
-          console.log(this.shareObj['imgUrl'])
-        }else{
-          this.shareObj['imgUrl'] = this.items[0]['src'];
-          console.log(this.shareObj['imgUrl'])
+        if(this.items.length){
+          this.shareObj.imgUrl = this.items[0].src;
         }
-
-
-        if(this.items[0].src == "undefined"){
-          return;
-        }*/
-
-
+        if(!this.shareObj.imgUrl){
+          this.shareObj.imgUrl = "http://www.zjzx.xyz/img/index-logo.481a2ae3.png";
+        }
         wxUtil.initShare(url,this.shareObj,()=>{});
 
       },

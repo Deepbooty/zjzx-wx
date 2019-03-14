@@ -411,8 +411,6 @@
             }
           });
         }
-
-
         let fileData = articleFileService.getFileByArticle(this.article.id);
         if (fileData && fileData.status == "success") {
           if (this.article.type == 1) {
@@ -505,17 +503,28 @@
         // 分享内容对象
         let reg = /[^\u4e00-\u9fa5]+/g;
         let tempContent = this.article.content.replace(reg,"");
-        let url = window.location.href;
+        let u = navigator.userAgent, app = navigator.appVersion;
+        let isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+        let isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+        let url;
+        url = window.location.href;
         if(window.location.hash.length){
           url = url.substr(0, url.indexOf(location.hash));
         }
-        let link = `http://wx.zjzx.xyz:8381/index.html#/detail?id=${encodeURI(this.article.id)}&detailType=false`;
+        if(isIOS){
+          if(location.href.includes('id')){
+            let ids = this.$route.query.id;
+            url = `${location.origin}/index.html#/detail?id=${encodeURIComponent(ids)}&detailType=false`;
+          }
+          window.location.href = url;
+        }
+   /*     let link = `http://wx.zjzx.xyz:8381/index.html#/detail?id=${encodeURI(this.article.id)}&detailType=false`;*/
+        // localStorage.setItem("link",link);
         this.shareObj = {
           title: this.article.title,
           desc: tempContent.substring(0, 80),
-          link:link
+          link:url
         };
-
         if(this.article.type == 1){
           this.shareObj.imgUrl = this.items[0].src;
         }else if(this.article.type == 2){
@@ -752,6 +761,11 @@
 
         next()
       }
+    },
+    beforeEach(to, from, next){
+      console.log(to+'11111111111111')
+      console.log(from+'2222222222222222222222')
+      console.log(next+'333333333333')
     },
     watch:{
       id(){

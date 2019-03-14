@@ -18,7 +18,7 @@ let wxUtil ={
     let config = wxUtil.ajaxSync("http://wx.zjzx.xyz/zjzx-wx/wx/getJsSDKConfig", {
       url: url
     });
-    config.debug = true;
+    config.debug = false;
     config.jsApiList = apiArr;
     return config;
   },
@@ -105,11 +105,11 @@ let wxUtil ={
         }
       });
     });
-  },
-
-  getShareUrl: function (url) {
-    return `https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe0b93ff5c5898740&redirect_uri=http%3a%2f%2fwx.zjzx.xyz%2fzjzx-wx%2fwx%2flogin&response_type=code&scope=snsapi_userinfo&state=${url}#wechat_redirect`;
   }
+
+/*  getShareUrl: function (url) {
+    return `https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxe0b93ff5c5898740&redirect_uri=http%3a%2f%2fwx.zjzx.xyz%2fzjzx-wx%2fwx%2flogin&response_type=code&scope=snsapi_userinfo&state=${url}#wechat_redirect`;
+  }*/
 };
 
 

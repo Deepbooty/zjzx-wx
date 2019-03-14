@@ -59,6 +59,9 @@ export default new VueRouter({
        component: (resolve)=>{
         require(['@/view/detail.vue'],resolve)
       },
+      meta:{
+        isShare: true
+      }
     },
     // 问答列表页面
     {
@@ -66,13 +69,6 @@ export default new VueRouter({
       name:'wendaList',
       component:(resolve)=>{
         require(['@/view/wendaList.vue'],resolve)
-      }
-    },
-    {
-      path:'/redirect',
-      name:'redirect',
-      component:(resolve)=>{
-        require(['@/view/redirect.vue'],resolve)
       }
     },
     // 问答详情页面

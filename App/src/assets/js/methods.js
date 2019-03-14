@@ -300,6 +300,7 @@ const tool = {
     },
 
 
+
     /**
      * 大数字转换为K/W简写
      * @param  Number num [description]

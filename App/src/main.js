@@ -93,7 +93,32 @@ FastClick.attach(document.body);
 
 Vue.config.productionTip = false;
 /* eslint-disable no-new */
-
+/*router.beforeEach((to,from,next)=>{
+  var u = navigator.userAgent, app = navigator.appVersion;
+  var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+  var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+  if(isIOS){
+    location.href = localStorage.getItem('link');
+    return;
+  }
+  next();
+});*/
+/*router.beforeEach((to,from,next)=>{
+  /!*  console.log(to.fullPath)
+    console.log(window.location.hash.slice(1));
+    console.log(to.meta.isShare)
+    let href = window.location.href;
+    href = href.replace(href.hash, ('#' + to.fullPath)); // hash模式下的页面路径拼接方式
+    window.location.assign(href);
+    console.log(window.location)
+  next();*!/
+  if ((to.fullPath !== window.location.hash.slice(1)) && to.meta.isShare) {
+    let href = window.location.href;
+    href = href.replace(href.hash, ('#' + to.fullPath)); // hash模式下的页面路径拼接方式
+    window.location.assign(href);
+  }
+  next();
+});*/
 new Vue({
   router,
   store,
@@ -103,20 +128,20 @@ new Vue({
     // this.initSystem();
   },
 
-/*  methods: {
-    //判断系统
-    initSystem(){
-        let System = {
-          isWechat:navigator.userAgent.indexOf('MicroMessenger') > -1,
-          isIOS:!!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/),
-          isAndroid:navigator.userAgent.indexOf('Android') > -1,
-          isNative:location.protocol.toLowerCase().indexOf('file') > -1,
-          isIP:!!location.href.match('192'),
-          iPhoneX:/iphone/gi.test(navigator.userAgent) && (screen.height === 812 && screen.width === 375)
-        };
-        this.$store.commit('setStateData',{name:'System',value:System})
-      },
-  },*/
+  /*  methods: {
+      //判断系统
+      initSystem(){
+          let System = {
+            isWechat:navigator.userAgent.indexOf('MicroMessenger') > -1,
+            isIOS:!!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/),
+            isAndroid:navigator.userAgent.indexOf('Android') > -1,
+            isNative:location.protocol.toLowerCase().indexOf('file') > -1,
+            isIP:!!location.href.match('192'),
+            iPhoneX:/iphone/gi.test(navigator.userAgent) && (screen.height === 812 && screen.width === 375)
+          };
+          this.$store.commit('setStateData',{name:'System',value:System})
+        },
+    },*/
   render: h => h(App),
 }).$mount('#app');
 
