@@ -358,33 +358,20 @@
         //评论滚动近底部，自动加载 一屏1080
         this.loadComment();
         this.ifLoad = false;
-
         // 微信分享
         let reg = /[^\u4e00-\u9fa5]+/g;
         let tempContent = this.answer.content.replace(reg,"");
-        let u = navigator.userAgent, app = navigator.appVersion;
-        let isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
-        let isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
-        let url;
-        url = window.location.href;
+        let url = window.location.href;
         if(window.location.hash.length){
           url = url.substr(0, url.indexOf(location.hash));
         }
-        if(isIOS){
-          if(location.href.includes('qid')){
-            let qid = this.$route.query.qid;
-            let aid = this.$route.query.aid;
-            url = `${location.origin}/index.html#/wendaDetail?qid=${encodeURIComponent(qid)}&aid=${encodeURIComponent(aid)}&detailType=`;
-          }
-          window.location.href = url;
-        }
-        //let link = `http://wx.zjzx.xyz:8381/index.html#/wendaDetail?qid=${encodeURIComponent(this.qid)}&aid=${encodeURIComponent(this.aid)}&detailType=`;
+
+        let link = `http://wx.zjzx.xyz/pages/index.html#/wendaDetail?qid=${encodeURI(this.qid)}&aid=${encodeURI(this.aid)}&detailType=`;
         this.shareObj = {
           title: this.qtitle,
           desc: tempContent.substring(0 ,80),
-          link: url
+          link: link
         };
-
         if(this.items.length){
           this.shareObj.imgUrl = this.items[0].src;
         }

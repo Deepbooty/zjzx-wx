@@ -33,22 +33,7 @@
           </router-link>
           <button type="button" class="focus bfc-p fr" v-if="userId != article.author" @click="handleDownLoad">{{focusState?'已关注':'关注'}}</button>
         </div>
-        <template v-if="isHide">
-          <div class="content hideContent">
-            <div class="article-content summary" v-if='article.content'>
-              <p v-html="article.content"></p>
-            </div>
-            <div class="showBtn">
-              <div class="openBtn" @click="handleOpenAll">
-                <img src="@/assets/images/open.gif" alt="">
-              </div>
 
-              <div class="download-btn" @click="handleDownLoad">打开APP阅读全文</div>
-            </div>
-
-          </div>
-        </template>
-        <template v-else>
           <div class="content showContent">
             <div class="article-content" v-if='article.content'>
               <p v-html="article.content"></p>
@@ -59,7 +44,6 @@
             </div>
             <a :href="article.sourceurl" class="see-text" v-if="sourceShow">查看原文</a>
           </div>
-        </template>
         <multIT v-for="(item,index) in aboutArticle" :article="item" :key="index" :ifSingle="true">
         </multIT>
         <div class="love-tip">
@@ -205,7 +189,6 @@
     },
     data(){
       return {
-        isHide:true,
         isActive:false,
         toggleText:'展开',
         badgeShow:false,
@@ -329,15 +312,7 @@
         }
       }
     },
-    activated(){
-      if(this.article.type == 2) {
-        this.isHide = false;
-      }else{
-        this.isHide = true;
-      }
-    },
     mounted(){
-
       this.id = this.$route.query.id;
       this.detailType = this.$route.query.detailType || 0;
       if(!localStorage.id || !localStorage.token){
@@ -428,7 +403,6 @@
             }
 
           }else if(this.article.type == 2){
-            this.isHide = false;
             let temp = fileData.result.filelist[0];
             if (temp) {
               this.playerOptions.sources[0].src = this.fileRoot + temp.url;
@@ -503,27 +477,16 @@
         // 分享内容对象
         let reg = /[^\u4e00-\u9fa5]+/g;
         let tempContent = this.article.content.replace(reg,"");
-        let u = navigator.userAgent, app = navigator.appVersion;
-        let isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
-        let isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
-        let url;
-        url = window.location.href;
+        let url = window.location.href;
         if(window.location.hash.length){
           url = url.substr(0, url.indexOf(location.hash));
         }
-        if(isIOS){
-          if(location.href.includes('id')){
-            let ids = this.$route.query.id;
-            url = `${location.origin}/index.html#/detail?id=${encodeURIComponent(ids)}&detailType=false`;
-          }
-          window.location.href = url;
-        }
-   /*     let link = `http://wx.zjzx.xyz:8381/index.html#/detail?id=${encodeURI(this.article.id)}&detailType=false`;*/
-        // localStorage.setItem("link",link);
+
+        let link = `http://wx.zjzx.xyz/pages/index.html#/detail?id=${encodeURIComponent(this.article.id)}&detailType=false`;
         this.shareObj = {
           title: this.article.title,
           desc: tempContent.substring(0, 80),
-          link:url
+          link:link
         };
         if(this.article.type == 1){
           this.shareObj.imgUrl = this.items[0].src;
@@ -569,10 +532,6 @@
         }else{
           this.popList.popupActive = false;
         }
-      },
-      // 展开全文
-      handleOpenAll(){
-        this.isHide=false;
       },
       goPerson(userId){
         this.$Tool.goPage({name:'publishedArticle',query:{userId}})
@@ -761,11 +720,6 @@
 
         next()
       }
-    },
-    beforeEach(to, from, next){
-      console.log(to+'11111111111111')
-      console.log(from+'2222222222222222222222')
-      console.log(next+'333333333333')
     },
     watch:{
       id(){
